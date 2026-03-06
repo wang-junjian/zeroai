@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 // 安全的 URI 解码函数
 function safeDecodeURIComponent(encoded: string): string {
@@ -32,6 +34,7 @@ interface LogEntry {
   timestamp: Date
   level: 'info' | 'warn' | 'error'
   message: string
+  details?: string
 }
 
 const stepNames = ['需求理解', '接口设计', '表结构设计', '处理逻辑设计', '代码生成']
@@ -54,6 +57,8 @@ export default function ProjectDetail() {
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [logsExpanded, setLogsExpanded] = useState(false)
+  const [contentExpanded, setContentExpanded] = useState(true)
 
   useEffect(() => {
     const name = searchParams.get('name')
@@ -62,33 +67,14 @@ export default function ProjectDetail() {
     if (req) setRequirements(safeDecodeURIComponent(req))
   }, [searchParams])
 
-  const addLog = (level: 'info' | 'warn' | 'error', message: string) => {
+  const addLog = (level: 'info' | 'warn' | 'error', message: string, details?: string) => {
     setLogs(prev => [...prev, {
       id: 'log-' + Date.now() + '-' + Math.random(),
       timestamp: new Date(),
       level,
-      message
+      message,
+      details
     }])
-  }
-
-  // 解析 JSON（智能提取）
-  const parseJSONSmart = (text: string): any => {
-    try {
-      return JSON.parse(text)
-    } catch (e) {
-      // 尝试找到第一个 { 和最后一个 }
-      const firstBrace = text.indexOf('{')
-      const lastBrace = text.lastIndexOf('}')
-      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        const jsonText = text.substring(firstBrace, lastBrace + 1)
-        try {
-          return JSON.parse(jsonText)
-        } catch (e2) {
-          console.error('JSON 解析失败:', e2)
-        }
-      }
-      throw e
-    }
   }
 
   // 调用 API 路由生成内容
@@ -103,19 +89,24 @@ export default function ProjectDetail() {
       let response: Response
       let endpoint = ''
       let body: any = {}
+      let inputDesc = ''
 
       if (stepNum === 1) {
         endpoint = '/api/analyze'
         body = { description: requirements }
+        inputDesc = '用户需求描述'
       } else if (stepNum === 2) {
         endpoint = '/api/design/interfaces'
         body = { requirements: steps[0].rawContent }
+        inputDesc = '需求理解结果'
       } else if (stepNum === 3) {
         endpoint = '/api/design/database'
         body = { requirements: steps[0].rawContent }
+        inputDesc = '需求理解结果'
       } else if (stepNum === 4) {
         endpoint = '/api/design/business-logic'
         body = { interfaces: steps[1].rawContent }
+        inputDesc = '接口设计结果'
       } else if (stepNum === 5) {
         endpoint = '/api/generate/code'
         body = {
@@ -123,7 +114,26 @@ export default function ProjectDetail() {
           interfaces: steps[1].rawContent,
           businessLogic: steps[3].rawContent
         }
+        inputDesc = '需求理解、接口设计、业务逻辑设计结果'
       }
+
+      // 记录输入信息
+      let inputDetails = ''
+      if (stepNum === 1) {
+        inputDetails = requirements
+      } else if (stepNum === 2 || stepNum === 3) {
+        inputDetails = steps[0].rawContent || '无'
+      } else if (stepNum === 4) {
+        inputDetails = steps[1].rawContent || '无'
+      } else if (stepNum === 5) {
+        const req = steps[0].rawContent || '无'
+        const inter = steps[1].rawContent || '无'
+        const logic = steps[3].rawContent || '无'
+        inputDetails = `需求理解：${req.substring(0, 100)}...\n\n接口设计：${inter.substring(0, 100)}...\n\n业务逻辑：${logic.substring(0, 100)}...`
+      }
+
+      addLog('info', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - 输入：${inputDesc}`,
+             `输入内容预览：${inputDetails.substring(0, 300)}${inputDetails.length > 300 ? '...' : ''}`)
 
       displayContent += '\n发送请求到 ' + endpoint + '...\n'
       setCurrentOutput(displayContent)
@@ -149,14 +159,20 @@ export default function ProjectDetail() {
       displayContent += '\n' + result.data
       setCurrentOutput(displayContent)
 
-      // 直接存储原始文本内容
+      // 记录输出信息
+      addLog('info', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - 输出成功生成`,
+             `输出内容预览：${result.data.substring(0, 500)}${result.data.length > 500 ? '...' : ''}`)
+
       return { data: result.data, rawContent: result.data }
     } catch (error) {
       displayContent += '\n❌ API 调用失败: ' + (error as any).message + '\n'
       displayContent += '\n使用模拟数据作为备用...\n'
       setCurrentOutput(displayContent)
 
-      // 模拟数据作为备用
+      addLog('error', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - API调用失败`,
+             (error as any).message)
+      addLog('warn', `步骤 ${stepNum} - 使用模拟数据作为备用`, '将生成标准模板内容')
+
       await new Promise(r => setTimeout(r, 500))
 
       let fallbackContent: string
@@ -288,6 +304,9 @@ export async function POST(req: NextRequest) {
       displayContent += '\n' + fallbackContent
       setCurrentOutput(displayContent)
 
+      addLog('info', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - 模拟数据生成成功`,
+             `生成内容预览：${fallbackContent.substring(0, 500)}${fallbackContent.length > 500 ? '...' : ''}`)
+
       return { data: fallbackContent, rawContent: fallbackContent }
     }
   }
@@ -312,7 +331,8 @@ export async function POST(req: NextRequest) {
         s.number === stepNum ? {
           ...s,
           status: 'reviewing',
-          data: result.data
+          data: result.data,
+          rawContent: result.rawContent
         } : s
       ))
       addLog('info', '步骤 ' + stepNum + ' 生成完成')
@@ -344,14 +364,26 @@ export async function POST(req: NextRequest) {
 
     return (
       <div className="space-y-4">
-        {/* 直接显示原始文本内容 */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-          <div className="font-mono text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-            {content}
-          </div>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-800">内容详情</h3>
+          <button
+            onClick={() => setContentExpanded(!contentExpanded)}
+            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+          >
+            {contentExpanded ? '收起内容' : '展开内容'}
+          </button>
         </div>
 
-        {/* 用户操作按钮 */}
+        {contentExpanded && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+            <div className="prose prose-sm md:prose-base max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3 mt-6">
           <button
             onClick={() => regenerateStep(step.number)}
@@ -399,7 +431,6 @@ export async function POST(req: NextRequest) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
@@ -422,9 +453,7 @@ export async function POST(req: NextRequest) {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Steps Visualizer */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6">五步流程</h2>
 
@@ -473,7 +502,6 @@ export async function POST(req: NextRequest) {
           </div>
         </div>
 
-        {/* Streaming Output (during generation) */}
         {showCurrentOutput && steps.some(s => s.status === 'generating') && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -486,7 +514,6 @@ export async function POST(req: NextRequest) {
           </div>
         )}
 
-        {/* Selected Step Content */}
         {selectedStep && (() => {
           const step = steps.find(s => s.number === selectedStep)
           if (!step || !step.data) return null
@@ -508,7 +535,6 @@ export async function POST(req: NextRequest) {
           )
         })()}
 
-        {/* Review Content (only show if no selected step) */}
         {!selectedStep && steps.map(step => step.status === 'reviewing' && (
           <div key={step.number} className="bg-white rounded-2xl shadow-lg p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-6">
@@ -518,21 +544,42 @@ export async function POST(req: NextRequest) {
           </div>
         ))}
 
-        {/* Logs */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mt-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">执行日志</h2>
-          <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm max-h-48 overflow-y-auto">
-            <div>&gt; 项目：{projectName}</div>
-            {logs.map((log) => (
-              <div key={log.id} className={
-                log.level === 'error' ? 'text-red-400' :
-                log.level === 'warn' ? 'text-yellow-400' :
-                'text-green-400'
-              }>
-                {log.timestamp.toLocaleTimeString()} [{log.level.toUpperCase()}] {log.message}
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900">执行日志</h2>
+            <button
+              onClick={() => setLogsExpanded(!logsExpanded)}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              {logsExpanded ? '收起日志' : '展开日志'}
+            </button>
           </div>
+
+          {logsExpanded && (
+            <div className="bg-gray-900 rounded-xl p-4 font-mono text-sm max-h-96 overflow-y-auto">
+              <div>&gt; 项目：{projectName}</div>
+              {logs.map((log) => (
+                <div key={log.id} className={
+                  log.level === 'error' ? 'text-red-400' :
+                  log.level === 'warn' ? 'text-yellow-400' :
+                  'text-green-400'
+                }>
+                  {log.timestamp.toLocaleTimeString()} [{log.level.toUpperCase()}] {log.message}
+                  {log.details && (
+                    <div className="ml-8 mt-1 text-gray-400 border-l-2 border-gray-600 pl-3">
+                      {log.details}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!logsExpanded && (
+            <div className="bg-gray-100 rounded-xl p-4 text-gray-600">
+              执行日志已收起。点击"展开日志"查看详细信息。
+            </div>
+          )}
         </div>
       </main>
     </div>
