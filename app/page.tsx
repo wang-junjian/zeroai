@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardBody } from '@/components/ui/card'
 
 interface Project {
   code: string
@@ -84,31 +85,32 @@ export default function Home() {
   const getStatusBadge = (status: Project['status']) => {
     const badges = {
       pending: { bg: 'bg-gray-100', text: 'text-gray-600', label: '待开始' },
-      running: { bg: 'bg-blue-100', text: 'text-blue-600', label: '运行中' },
-      completed: { bg: 'bg-green-100', text: 'text-green-600', label: '已完成' },
-      failed: { bg: 'bg-red-100', text: 'text-red-600', label: '失败' }
+      running: { bg: 'bg-gradient-to-r from-indigo-100 to-violet-100', text: 'text-indigo-700', label: '运行中' },
+      completed: { bg: 'bg-gradient-to-r from-green-100 to-emerald-100', text: 'text-green-700', label: '已完成' },
+      failed: { bg: 'bg-gradient-to-r from-red-100 to-rose-100', text: 'text-red-700', label: '失败' }
     }
     return badges[status] || badges.pending
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-xl">🚀</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">zeroai</h1>
+            <h1 className="text-3xl font-bold text-gradient">zeroai</h1>
           </div>
-          <button
+          <Button
             onClick={() => setShowNewProject(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+            size="lg"
+            className="shadow-lg hover:shadow-xl"
           >
             <span>+</span>
             新建项目
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -117,30 +119,52 @@ export default function Home() {
         {/* Welcome Section */}
         {projects.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <span className="text-5xl">🎮</span>
+            <div className="w-32 h-32 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+              <span className="text-6xl">🎮</span>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
               欢迎使用 zeroai！
             </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-8">
+            <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-10 leading-relaxed">
               一个通用的 AI 开发助手，能够按照五步流程开发任意软件应用。
               从需求理解到代码生成，让 AI 帮你开发软件！
             </p>
-            <button
+            <div className="flex items-center justify-center gap-8 mb-8 text-gray-500">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <span>需求分析</span>
+              </div>
+              <span className="text-gray-300">→</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+                <span>接口设计</span>
+              </div>
+              <span className="text-gray-300">→</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                <span>代码生成</span>
+              </div>
+            </div>
+            <Button
               onClick={() => setShowNewProject(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-medium text-lg transition-colors inline-flex items-center gap-2"
+              size="lg"
+              className="shadow-lg hover:shadow-xl"
             >
               <span>🚀</span>
               开始你的第一个项目
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Project Grid */}
         {projects.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-6">我的项目</h2>
+          <div className="animate-fade-in">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">我的项目</h2>
+              <div className="text-gray-600">
+                共 {projects.length} 个项目
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {projects.map((project) => {
                 const statusBadge = getStatusBadge(project.status)
@@ -148,15 +172,20 @@ export default function Home() {
                 params.set('name', project.name)
                 params.set('req', project.requirements)
                 return (
-                  <div key={project.code} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                    <div className="p-6">
+                  <Card
+                    key={project.code}
+                    hoverable={true}
+                    onClick={() => router.push('/projects/' + project.code + '?' + params.toString())}
+                    className="group"
+                  >
+                    <CardBody className="p-6">
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
                             {project.name}
                           </h3>
                           <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}>
                               {statusBadge.label}
                             </span>
                             <span className="text-xs text-gray-500">
@@ -169,22 +198,21 @@ export default function Home() {
                             e.stopPropagation()
                             deleteProject(project.code)
                           }}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
                         >
                           🗑️
                         </button>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                      <p className="text-sm text-gray-600 line-clamp-3 mb-6 leading-relaxed">
                         {project.requirements}
                       </p>
-                      <Link
-                        href={'/projects/' + project.code + '?' + params.toString()}
-                        className="block w-full text-center bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition-colors"
-                      >
-                        打开项目
-                      </Link>
-                    </div>
-                  </div>
+                      <div className="flex justify-between items-center">
+                        <Button variant="outline" size="sm" className="w-full">
+                          打开项目
+                        </Button>
+                      </div>
+                    </CardBody>
+                  </Card>
                 )
               })}
             </div>
@@ -194,14 +222,14 @@ export default function Home() {
 
       {/* New Project Modal */}
       {showNewProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">新建项目</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold text-gradient">新建项目</h2>
                 <button
                   onClick={() => setShowNewProject(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                  className="text-gray-400 hover:text-gray-600 text-2xl transition-colors p-2 rounded-lg hover:bg-gray-100"
                 >
                   ×
                 </button>
@@ -220,7 +248,7 @@ export default function Home() {
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="例如：坦克大战游戏"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-lg"
                   />
                 </div>
 
@@ -231,7 +259,7 @@ export default function Home() {
                   </label>
                   <textarea
                     required
-                    rows={10}
+                    rows={12}
                     value={requirements}
                     onChange={(e) => setRequirements(e.target.value)}
                     placeholder="详细描述你想要开发的软件...
@@ -243,9 +271,9 @@ export default function Home() {
 - 关卡系统（通关后进入下一关）
 - 地图元素：砖墙、钢墙、水域、树林、基地
 - 道具系统：速度提升、火力提升、护盾、生命、炸弹、冻结"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono text-sm"
+                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors font-mono text-sm"
                   />
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-3 text-sm text-gray-500">
                     尽可能详细地描述你的需求，包括功能特性、技术要求等。
                   </p>
                 </div>
@@ -255,27 +283,30 @@ export default function Home() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     技术栈（可选）
                   </label>
-                  <div className="text-gray-500 text-sm">
+                  <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-4">
                     默认使用：Next.js + TypeScript + Tailwind CSS
                   </div>
                 </div>
 
                 {/* Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <button
+                <div className="flex gap-4 pt-6">
+                  <Button
                     type="button"
                     onClick={() => setShowNewProject(false)}
-                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+                    variant="outline"
+                    size="lg"
+                    className="flex-1"
                   >
                     取消
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                    size="lg"
+                    className="flex-1 shadow-lg hover:shadow-xl"
                   >
                     <span>🚀</span>
                     开始创建
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
