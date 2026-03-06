@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -ti :3001)",
+      "Bash(curl -I http://localhost:3001)",
+      "Bash(curl -I http://localhost:3003)",
+      "Bash(lsof -ti :3003)",
+      "Bash(curl -X POST -H \"Content-Type: application/json\" -d '{\"\"description\"\":\"\"我想开发一个坦克大战游戏，支持玩家控制坦克移动、射击，AI敌方坦克自动移动和射击，地图元素包括砖墙、钢墙、水域、树林、基地等，支持道具系统和关卡系统。\"\"}' http://localhost:3001/api/analyze)"
+    ]
+  }
+}
