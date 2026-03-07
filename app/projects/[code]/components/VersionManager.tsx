@@ -89,19 +89,20 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <Button
-            onClick={handleCreateVersion}
-            disabled={isCreating || !versionNumber}
-            size="sm"
-          >
-            {isCreating ? '保存中...' : '保存版本'}
-          </Button>
-          <Button
             onClick={handleCreateNewVersion}
             disabled={isCreatingNew || !versionNumber}
             size="sm"
             variant="outline"
           >
             {isCreatingNew ? '创建中...' : '新版本'}
+          </Button>
+          <Button
+            onClick={handleCreateVersion}
+            disabled={isCreating || !versionNumber}
+            size="sm"
+            variant="outline"
+          >
+            {isCreating ? '保存中...' : '保存版本'}
           </Button>
         </div>
 
