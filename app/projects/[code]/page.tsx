@@ -65,6 +65,7 @@ export default function ProjectDetail() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
+        {/* 左侧：步骤侧边栏 */}
         <Sidebar
           steps={steps}
           selectedStep={selectedStep}
@@ -72,6 +73,7 @@ export default function ProjectDetail() {
           isRunning={isRunning}
         />
 
+        {/* 中间：内容区域 */}
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-4xl mx-auto h-full flex flex-col gap-4">
@@ -143,13 +145,6 @@ export default function ProjectDetail() {
                 </Card>
               )}
 
-              {/* 版本管理 */}
-              <VersionManager
-                versions={versions}
-                onCreateVersion={createVersion}
-                onPublishVersion={publishVersion}
-              />
-
               {/* 日志显示 */}
               <Card className="flex-shrink-0">
                 <CardBody className="p-4">
@@ -164,6 +159,15 @@ export default function ProjectDetail() {
             </div>
           </div>
         </main>
+
+        {/* 右侧：版本管理侧边栏 */}
+        <div className="w-80 border-l border-gray-200 flex flex-col overflow-hidden bg-white">
+          <VersionManager
+            versions={versions}
+            onCreateVersion={createVersion}
+            onPublishVersion={publishVersion}
+          />
+        </div>
       </div>
     </div>
   )
