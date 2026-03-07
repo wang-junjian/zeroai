@@ -72,8 +72,8 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
         <h3 className="text-lg font-bold text-gray-900">版本管理</h3>
       </CardHeader>
       <CardBody>
-        {/* 创建版本 */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* 创建版本 - 版本号和版本名称在一行 */}
+        <div className="flex flex-wrap gap-2 mb-2">
           <input
             type="text"
             value={versionNumber}
@@ -88,6 +88,10 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
             placeholder="版本名称 (可选)"
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+        </div>
+
+        {/* 按钮在另一行 */}
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             onClick={handleCreateNewVersion}
             disabled={isCreatingNew || !versionNumber}
