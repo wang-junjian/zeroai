@@ -7,10 +7,12 @@ import { StepContent } from './components/StepContent'
 import { LogDisplay } from './components/LogDisplay'
 import { Sidebar } from './components/Sidebar'
 import { VersionManager } from './components/VersionManager'
+import { ExportToWord } from './components/ExportToWord'
 
 export default function ProjectDetail() {
   const {
     projectName,
+    requirements,
     isRunning,
     steps,
     selectedStep,
@@ -62,7 +64,12 @@ export default function ProjectDetail() {
             {projectName}
           </h1>
           <div className="flex items-center gap-3">
-            {/* 隐藏"开始生成"按钮，因为直接进入需求理解步骤 */}
+            <ExportToWord
+              projectName={projectName}
+              steps={steps}
+              selectedVersion={selectedVersion}
+              requirements={requirements}
+            />
           </div>
         </div>
       </header>
