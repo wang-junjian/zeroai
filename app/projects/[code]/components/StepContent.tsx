@@ -19,12 +19,14 @@ export const StepContent: React.FC<StepContentProps> = ({
   onNext,
   isLast
 }) => {
-  // 在所有状态下都显示完整的详细视图
+  // 如果步骤有输出内容，默认显示输出标签页
+  const defaultTab = step.detail?.output ? 'output' : 'input'
+
   return (
     <div className="h-full w-full">
       <InfoPanel
         stepDetail={step.detail as StepDetail}
-        defaultActiveTab="input"
+        defaultActiveTab={defaultTab}
         onRegenerate={onRegenerate}
         onApprove={onApprove}
         onNext={onNext}

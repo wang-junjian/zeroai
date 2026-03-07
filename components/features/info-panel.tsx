@@ -89,9 +89,14 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
       : ''
   })
 
-  // 当步骤改变时，重置状态
+  // 当步骤改变或输出内容出现时，更新状态
   useEffect(() => {
-    setActiveTab(defaultActiveTab)
+    // 如果有输出内容，切换到输出标签页
+    if (stepDetail.output && defaultActiveTab === 'output') {
+      setActiveTab('output')
+    } else {
+      setActiveTab(defaultActiveTab)
+    }
     setEditableContent({
       system: stepDetail.systemPrompt || '',
       input: stepDetail.input || '',
