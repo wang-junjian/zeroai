@@ -1,36 +1,163 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ZeroAI
 
-## Getting Started
+ZeroAI 是一个通用的 AI 驱动软件开发助手，能够按照标准化的五步流程开发任意软件应用。从需求理解到代码生成，让 AI 帮你完成整个软件开发周期。
 
-First, run the development server:
+## 特性
+
+- 🚀 **五步开发流程**：需求分析 → 接口设计 → 数据库设计 → 业务逻辑设计 → 代码生成
+- 💾 **版本管理**：完整的项目版本控制，支持创建、查看和加载历史版本
+- 📝 **Word 导出**：一键导出项目文档到 Word 格式
+- 🎯 **交互式审查**：每一步生成结果都可查看、审批或重新生成
+- 📊 **实时日志**：完整记录 AI 开发过程中的所有操作和输出
+- 🔄 **数据持久化**：使用 SQLite 数据库存储项目数据
+
+## 技术栈
+
+- **框架**: Next.js 16 (App Router)
+- **语言**: TypeScript
+- **样式**: Tailwind CSS 4
+- **数据库**: Better-SQLite3
+- **AI**: OpenAI API (兼容 LongCat 等第三方 API)
+- **文档导出**: docx
+
+## 快速开始
+
+### 环境配置
+
+1. 复制环境变量模板：
+```bash
+cp .env.example .env
+```
+
+2. 编辑 `.env` 文件，配置你的 AI API：
+```env
+OPENAI_BASE_URL=https://api.longcat.chat/openai/
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=LongCat-Flash-Lite
+TEMPERATURE=0.7
+MAX_TOKENS=64000
+```
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 启动开发服务器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 [http://localhost:3000](http://localhost:3000) 开始使用。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 使用指南
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. 创建新项目
 
-## Learn More
+1. 点击"新建项目"按钮
+2. 填写项目名称
+3. 详细描述你的项目需求（越详细越好）
+4. 点击"开始创建"
 
-To learn more about Next.js, take a look at the following resources:
+### 2. 五步开发流程
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ZeroAI 会按照以下五个步骤自动进行开发：
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| 步骤 | 名称 | 描述 |
+|------|------|------|
+| 1 | 需求理解与分析 | 分析项目需求，梳理功能点和技术要求 |
+| 2 | 接口设计 | 设计 API 接口、数据结构和交互模式 |
+| 3 | 数据库设计 | 设计数据库表结构和关系 |
+| 4 | 业务逻辑设计 | 设计核心业务处理逻辑和流程 |
+| 5 | 代码生成 | 根据前面的设计生成完整的源代码 |
 
-## Deploy on Vercel
+### 3. 交互式操作
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **查看详情**: 点击左侧步骤列表查看每一步的详细内容
+- **重新生成**: 对某一步结果不满意时可以点击"重新生成"
+- **审批通过**: 确认某一步结果正确后点击"审批并继续"
+- **导出文档**: 点击右上角"导出 Word"按钮导出完整项目文档
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. 版本管理
+
+- **创建版本**: 在右侧版本管理区域可以创建项目快照
+- **加载版本**: 点击任意历史版本可以恢复到该版本的状态
+- **版本命名**: 可以为每个版本设置有意义的名称
+
+## 项目结构
+
+```
+zeroai/
+├── app/                          # Next.js App Router
+│   ├── api/                      # API 路由
+│   │   ├── analyze/              # 需求分析 API
+│   │   ├── design/               # 设计相关 API
+│   │   ├── generate/             # 代码生成 API
+│   │   └── projects/             # 项目管理 API
+│   ├── projects/
+│   │   └── [code]/               # 项目详情页
+│   │       ├── components/       # 项目详情组件
+│   │       ├── hooks/            # 项目详情 Hooks
+│   │       └── page.tsx          # 项目详情主页面
+│   ├── globals.css                # 全局样式
+│   ├── layout.tsx                 # 根布局
+│   └── page.tsx                   # 首页（项目列表）
+├── components/                    # 通用组件
+├── lib/                           # 核心库
+│   ├── ai-service.ts              # AI 服务封装
+│   ├── database.ts                # 数据库初始化
+│   └── project-db.ts              # 项目数据库操作
+├── prompts/                       # AI 提示词
+│   ├── analyze-requirements.md
+│   ├── design-interfaces.md
+│   ├── design-database.md
+│   ├── design-business-logic.md
+│   └── generate-code.md
+├── public/                        # 静态资源
+├── .env.example                   # 环境变量模板
+├── tailwind.config.ts             # Tailwind 配置
+├── tsconfig.json                  # TypeScript 配置
+└── zeroai.db                      # SQLite 数据库文件（自动生成）
+```
+
+## 数据库
+
+项目使用 SQLite 数据库，包含以下表：
+
+| 表名 | 说明 |
+|------|------|
+| `t_project` | 项目基本信息 |
+| `t_project_step` | 项目各步骤的详细数据 |
+| `t_project_version` | 项目版本快照 |
+| `t_project_log` | 项目操作日志 |
+
+## 配置说明
+
+### 环境变量
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `OPENAI_BASE_URL` | AI API 基础 URL | `https://api.longcat.chat/openai/` |
+| `OPENAI_API_KEY` | AI API 密钥 | `NONE` |
+| `OPENAI_MODEL` | AI 模型名称 | `LongCat-Flash-Lite` |
+| `TEMPERATURE` | AI 温度参数 | `0.7` |
+| `MAX_TOKENS` | AI 最大 Token 数 | `64000` |
+
+## 开发
+
+```bash
+# 代码检查
+npm run lint
+
+# 构建生产版本
+npm run build
+
+# 启动生产服务器
+npm start
+```
+
+## 许可证
+
+MIT
