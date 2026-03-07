@@ -14,6 +14,7 @@ export const ViewToggle: React.FC<ViewToggleProps> = ({
   return (
     <div className="flex bg-gray-100 rounded-lg p-1">
       <button
+        type='button'
         onClick={() => onViewModeChange('simple')}
         className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
           viewMode === 'simple'
@@ -24,6 +25,7 @@ export const ViewToggle: React.FC<ViewToggleProps> = ({
         简洁视图
       </button>
       <button
+        type='button'
         onClick={() => onViewModeChange('detail')}
         className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
           viewMode === 'detail'

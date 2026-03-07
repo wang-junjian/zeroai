@@ -17,7 +17,22 @@ export function useProjectDetail() {
   const [isRunning, setIsRunning] = useState(false)
   const [currentStep, setCurrentStep] = useState(-1)
   const [steps, setSteps] = useState<Step[]>([
-    { number: 1, name: stepNames[0], status: 'pending' },
+    {
+      number: 1,
+      name: stepNames[0],
+      status: 'reviewing',
+      data: '请输入项目需求描述',
+      detail: {
+        stepNumber: 1,
+        stepName: stepNames[0],
+        systemPrompt: systemPrompts[0],
+        userPrompt: '',
+        input: '',
+        output: '',
+        rawResponse: null,
+        timing: undefined
+      }
+    },
     { number: 2, name: stepNames[1], status: 'pending' },
     { number: 3, name: stepNames[2], status: 'pending' },
     { number: 4, name: stepNames[3], status: 'pending' },
@@ -25,14 +40,27 @@ export function useProjectDetail() {
   ])
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
-  const [selectedStep, setSelectedStep] = useState<number | null>(null)
-  const [viewMode, setViewMode] = useState<'simple' | 'detail'>('simple')
+  const [selectedStep, setSelectedStep] = useState<number | null>(1)
+  const [viewMode, setViewMode] = useState<'simple' | 'detail'>('detail')
 
   useEffect(() => {
     const name = searchParams.get('name')
     const req = searchParams.get('req')
     if (name) setProjectName(safeDecodeURIComponent(name))
-    if (req) setRequirements(safeDecodeURIComponent(req))
+    if (req) {
+      setRequirements(safeDecodeURIComponent(req))
+      setSteps(prev => prev.map(step =>
+        step.number === 1 ? {
+          ...step,
+          detail: {
+            ...step.detail!,
+            input: safeDecodeURIComponent(req),
+            userPrompt: safeDecodeURIComponent(req)
+          },
+          data: '需求分析正在准备中...'
+        } : step
+      ))
+    }
   }, [searchParams])
 
   const startStep = useCallback(async (stepNum: number) => {
