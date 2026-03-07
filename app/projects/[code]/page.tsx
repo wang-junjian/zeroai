@@ -78,7 +78,7 @@ export default function ProjectDetail() {
                       <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
                       正在生成：{steps.find(s => s.status === 'generating')?.name}
                     </h2>
-                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-green-400 h-48 overflow-y-auto relative">
+                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-green-400 h-28 overflow-y-auto relative">
                       <pre className="whitespace-pre-wrap">{currentOutput}</pre>
                       <div className="absolute bottom-3 left-4">
                         <div className="flex items-center gap-2">
