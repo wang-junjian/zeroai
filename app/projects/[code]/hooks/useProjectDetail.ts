@@ -41,7 +41,6 @@ export function useProjectDetail() {
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(1)
-  const [viewMode, setViewMode] = useState<'simple' | 'detail'>('detail')
 
   useEffect(() => {
     const name = searchParams.get('name')
@@ -262,8 +261,6 @@ export function useProjectDetail() {
     currentOutput,
     showCurrentOutput,
     setShowCurrentOutput,
-    viewMode,
-    setViewMode,
     logs,
     logsExpanded,
     setLogsExpanded,
