@@ -21,6 +21,14 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
   const [versionName, setVersionName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
+  // 当选中版本变化时，更新输入框值
+  React.useEffect(() => {
+    if (selectedVersion) {
+      setVersionNumber(selectedVersion.version_number)
+      setVersionName(selectedVersion.version_name || '')
+    }
+  }, [selectedVersion])
+
   const handleCreateVersion = async () => {
     if (!versionNumber) return
     setIsCreating(true)
