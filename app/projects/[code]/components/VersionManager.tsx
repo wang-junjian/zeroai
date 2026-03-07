@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card'
 interface VersionManagerProps {
   versions: any[]
   onCreateVersion: (versionNumber: string, versionName: string) => Promise<void>
+  onCreateNewVersion: (versionNumber: string, versionName: string) => Promise<void>
   onLoadVersion: (version: any) => Promise<void>
   selectedVersion?: any
 }
@@ -14,12 +15,14 @@ interface VersionManagerProps {
 export const VersionManager: React.FC<VersionManagerProps> = ({
   versions,
   onCreateVersion,
+  onCreateNewVersion,
   onLoadVersion,
   selectedVersion
 }) => {
   const [versionNumber, setVersionNumber] = useState('1.0.0')
   const [versionName, setVersionName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+  const [isCreatingNew, setIsCreatingNew] = useState(false)
 
   // 当选中版本变化时，更新输入框值
   React.useEffect(() => {
@@ -39,6 +42,19 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
       console.error('保存版本失败:', error)
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const handleCreateNewVersion = async () => {
+    if (!versionNumber) return
+    setIsCreatingNew(true)
+    try {
+      await onCreateNewVersion(versionNumber, versionName)
+      setVersionName('')
+    } catch (error) {
+      console.error('创建新版本失败:', error)
+    } finally {
+      setIsCreatingNew(false)
     }
   }
 
@@ -78,6 +94,14 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
             size="sm"
           >
             {isCreating ? '保存中...' : '保存版本'}
+          </Button>
+          <Button
+            onClick={handleCreateNewVersion}
+            disabled={isCreatingNew || !versionNumber}
+            size="sm"
+            variant="outline"
+          >
+            {isCreatingNew ? '创建中...' : '新版本'}
           </Button>
         </div>
 

@@ -27,6 +27,7 @@ export default function ProjectDetail() {
     startProject,
     versions,
     createVersion,
+    createNewVersion,
     selectedVersion,
     loadVersion
   } = useProjectDetail()
@@ -157,6 +158,7 @@ export default function ProjectDetail() {
           <VersionManager
             versions={versions}
             onCreateVersion={createVersion}
+            onCreateNewVersion={createNewVersion}
             onLoadVersion={loadVersion}
             selectedVersion={selectedVersion}
           />

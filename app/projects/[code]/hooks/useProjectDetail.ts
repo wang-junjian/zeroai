@@ -522,6 +522,77 @@ export function useProjectDetail() {
     }
   }, [params.code, addLog])
 
+  // 创建新版本（重置到初始状态，保留需求理解阶段的输入）
+  const createNewVersion = useCallback(async (versionNumber: string, versionName: string) => {
+    try {
+      // 重置项目到初始状态，保留需求理解阶段的输入
+      const initialSteps: Step[] = [
+        {
+          number: 1,
+          name: stepNames[0],
+          status: 'pending',
+          data: '请输入项目需求描述',
+          detail: {
+            stepNumber: 1,
+            stepName: stepNames[0],
+            systemPrompt: systemPrompts[0],
+            userPrompt: requirements, // 保留需求理解阶段的输入
+            input: requirements, // 保留需求理解阶段的输入
+            output: '',
+            rawResponse: null,
+            timing: undefined
+          }
+        },
+        { number: 2, name: stepNames[1], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 2, stepName: stepNames[1], systemPrompt: systemPrompts[1], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+        { number: 3, name: stepNames[2], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 3, stepName: stepNames[2], systemPrompt: systemPrompts[2], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+        { number: 4, name: stepNames[3], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 4, stepName: stepNames[3], systemPrompt: systemPrompts[3], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+        { number: 5, name: stepNames[4], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 5, stepName: stepNames[4], systemPrompt: systemPrompts[4], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } }
+      ]
+
+      setSteps(initialSteps)
+      setCurrentStep(-1)
+      setSelectedStep(1)
+      setShowCurrentOutput(false)
+      clearLogs()
+      addLog('info', '项目已重置到初始状态，开始新的版本开发')
+
+      // 创建新版本
+      const response = await fetch(`/api/projects/${params.code}/versions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          versionNumber,
+          versionName
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || '保存版本失败')
+      }
+
+      const result = await response.json()
+      // 更新版本列表
+      setVersions(prev => {
+        const index = prev.findIndex(v => v.version_number === versionNumber)
+        const newVersion = result.version
+        if (index !== -1) {
+          const updatedVersions = [...prev]
+          updatedVersions[index] = newVersion
+          return updatedVersions
+        }
+        return [newVersion, ...prev]
+      })
+
+      setSelectedVersion(result.version)
+      addLog('info', `新版本 ${versionNumber}${versionName ? ` - ${versionName}` : ''} 创建成功！`)
+    } catch (error) {
+      console.error('创建新版本失败:', error)
+      addLog('error', '创建新版本失败: ' + (error as any).message)
+      throw error
+    }
+  }, [params.code, addLog, clearLogs, requirements])
+
   const startProject = useCallback(async () => {
     if (isRunning) return
     setIsRunning(true)
@@ -576,6 +647,7 @@ export function useProjectDetail() {
     versions,
     selectedVersion,
     createVersion,
+    createNewVersion,
     loadVersion
   }
 }
