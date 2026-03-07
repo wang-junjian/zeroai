@@ -13,12 +13,21 @@ ZeroAI 是一个通用的 AI 驱动软件开发助手，能够按照标准化的
 
 ## 技术栈
 
+### 核心依赖
 - **框架**: Next.js 16 (App Router)
 - **语言**: TypeScript
 - **样式**: Tailwind CSS 4
 - **数据库**: Better-SQLite3
 - **AI**: OpenAI API (兼容 LongCat 等第三方 API)
 - **文档导出**: docx
+
+### 测试依赖
+- **测试框架**: Vitest
+- **测试 UI**: Vitest UI
+- **React 测试**: @testing-library/react
+- **DOM 断言**: @testing-library/jest-dom
+- **用户事件**: @testing-library/user-event
+- **浏览器环境**: jsdom
 
 ## 快速开始
 
