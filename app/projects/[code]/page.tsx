@@ -7,6 +7,7 @@ import { useProjectDetail } from './hooks/useProjectDetail'
 import { StepContent } from './components/StepContent'
 import { LogDisplay } from './components/LogDisplay'
 import { Sidebar } from './components/Sidebar'
+import { VersionManager } from './components/VersionManager'
 
 export default function ProjectDetail() {
   const {
@@ -24,7 +25,10 @@ export default function ProjectDetail() {
     approveStep,
     goToNextStep,
     startStep,
-    startProject
+    startProject,
+    versions,
+    createVersion,
+    publishVersion
   } = useProjectDetail()
 
   const getDisplayStep = () => {
@@ -139,6 +143,14 @@ export default function ProjectDetail() {
                 </Card>
               )}
 
+              {/* 版本管理 */}
+              <VersionManager
+                versions={versions}
+                onCreateVersion={createVersion}
+                onPublishVersion={publishVersion}
+              />
+
+              {/* 日志显示 */}
               <Card className="flex-shrink-0">
                 <CardBody className="p-4">
                   <LogDisplay
