@@ -196,8 +196,28 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         {viewMode === 'raw' || isJson ? (
           <textarea
             value={content}
-            readOnly
-            className="w-full h-full p-4 font-mono text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none resize-none"
+            onChange={(e) => {
+              // 更新对应标签页的内容
+              switch (activeTab) {
+                case 'system':
+                  stepDetail.systemPrompt = e.target.value
+                  break
+                case 'input':
+                  stepDetail.input = e.target.value
+                  break
+                case 'output':
+                  stepDetail.output = e.target.value
+                  break
+                case 'response':
+                  try {
+                    stepDetail.rawResponse = JSON.parse(e.target.value)
+                  } catch (error) {
+                    // 忽略无效的 JSON
+                  }
+                  break
+              }
+            }}
+            className="w-full h-full p-4 font-mono text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
           />
         ) : (
           <div className="w-full h-full bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col">
