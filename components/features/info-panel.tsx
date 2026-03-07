@@ -4,22 +4,16 @@ import React, { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
+import type { StepDetail } from '@/types'
 
-export interface StepDetail {
-  stepNumber: number
-  stepName: string
-  systemPrompt?: string
-  userPrompt?: string
-  input?: string
-  output?: string
-  rawResponse?: any
-  timing?: {
-    startTime: Date
-    endTime?: Date
-    duration?: number
-  }
-}
+/**
+ * 导出 StepDetail 类型以保持向后兼容
+ */
+export type { StepDetail } from '@/types'
 
+/**
+ * 信息面板组件属性
+ */
 interface InfoPanelProps {
   stepDetail: StepDetail
   defaultActiveTab?: 'input' | 'output' | 'system' | 'response'

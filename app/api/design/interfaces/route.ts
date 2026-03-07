@@ -1,22 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { designInterfaces } from '@/lib/ai-service';
+import { NextRequest } from 'next/server'
+import { designInterfaces } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
-export async function POST(req: NextRequest) {
-  try {
-    const { requirements } = await req.json();
-    const result = await designInterfaces(requirements);
-
-    return NextResponse.json({
-      code: '000000',
-      msg: '调用成功',
-      data: result,
-    });
-  } catch (error) {
-    console.error('设计接口失败:', error);
-    return NextResponse.json({
-      code: '000001',
-      msg: '设计接口失败',
-      data: null,
-    });
-  }
+interface DesignInterfacesRequest {
+  requirements: string
 }
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { requirements } = await validateRequest<DesignInterfacesRequest>(req, ['requirements'])
+  return await designInterfaces(requirements)
+})

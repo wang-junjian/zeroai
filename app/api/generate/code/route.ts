@@ -1,22 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { generateCode } from '@/lib/ai-service';
+import { NextRequest } from 'next/server'
+import { generateCode } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
-export async function POST(req: NextRequest) {
-  try {
-    const { requirements, interfaces, businessLogic } = await req.json();
-    const result = await generateCode(requirements, interfaces, businessLogic);
-
-    return NextResponse.json({
-      code: '000000',
-      msg: '调用成功',
-      data: result,
-    });
-  } catch (error) {
-    console.error('生成代码失败:', error);
-    return NextResponse.json({
-      code: '000001',
-      msg: '生成代码失败',
-      data: null,
-    });
-  }
+interface GenerateCodeRequest {
+  requirements: string
+  interfaces: string
+  businessLogic: string
 }
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { requirements, interfaces, businessLogic } = await validateRequest<GenerateCodeRequest>(
+    req,
+    ['requirements', 'interfaces', 'businessLogic']
+  )
+  return await generateCode(requirements, interfaces, businessLogic)
+})
