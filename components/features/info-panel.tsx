@@ -79,25 +79,31 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab)
   const [viewMode, setViewMode] = useState<ViewMode>('rendered')
+  // 使用本地状态来管理编辑的内容
+  const [editableContent, setEditableContent] = useState<{ [key in TabType]: string }>({
+    system: stepDetail.systemPrompt || '',
+    input: stepDetail.input || '',
+    output: stepDetail.output || '',
+    response: stepDetail.rawResponse
+      ? JSON.stringify(stepDetail.rawResponse, null, 2)
+      : ''
+  })
 
-  // 当步骤改变时，重置到默认标签页
+  // 当步骤改变时，重置状态
   useEffect(() => {
     setActiveTab(defaultActiveTab)
-  }, [stepDetail.stepNumber, defaultActiveTab])
+    setEditableContent({
+      system: stepDetail.systemPrompt || '',
+      input: stepDetail.input || '',
+      output: stepDetail.output || '',
+      response: stepDetail.rawResponse
+        ? JSON.stringify(stepDetail.rawResponse, null, 2)
+        : ''
+    })
+  }, [stepDetail.stepNumber, defaultActiveTab, stepDetail.systemPrompt, stepDetail.input, stepDetail.output, stepDetail.rawResponse])
 
   const getTabContent = () => {
-    switch (activeTab) {
-      case 'input':
-        return stepDetail.input || ''
-      case 'output':
-        return stepDetail.output || ''
-      case 'system':
-        return stepDetail.systemPrompt || ''
-      case 'response':
-        return stepDetail.rawResponse
-          ? JSON.stringify(stepDetail.rawResponse, null, 2)
-          : ''
-    }
+    return editableContent[activeTab]
   }
 
   const isJson = activeTab === 'response'
@@ -197,7 +203,13 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
           <textarea
             value={content}
             onChange={(e) => {
-              // 更新对应标签页的内容
+              // 首先更新本地状态，确保 UI 能立即响应
+              setEditableContent(prev => ({
+                ...prev,
+                [activeTab]: e.target.value
+              }))
+
+              // 同时更新原始数据，确保数据一致性
               switch (activeTab) {
                 case 'system':
                   stepDetail.systemPrompt = e.target.value
