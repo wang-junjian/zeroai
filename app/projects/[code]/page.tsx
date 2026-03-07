@@ -6,7 +6,6 @@ import { Card, CardBody } from '@/components/ui/card'
 import { useProjectDetail } from './hooks/useProjectDetail'
 import { StepContent } from './components/StepContent'
 import { LogDisplay } from './components/LogDisplay'
-import { ViewToggle } from './components/ViewToggle'
 import { Sidebar } from './components/Sidebar'
 
 export default function ProjectDetail() {
@@ -18,8 +17,6 @@ export default function ProjectDetail() {
     setSelectedStep,
     currentOutput,
     showCurrentOutput,
-    viewMode,
-    setViewMode,
     logs,
     logsExpanded,
     setLogsExpanded,
@@ -55,8 +52,6 @@ export default function ProjectDetail() {
             {projectName}
           </h1>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-
             {!isRunning && steps.every(s => s.status === 'pending') && (
               <Button onClick={startProject}>
                 开始生成
@@ -123,7 +118,6 @@ export default function ProjectDetail() {
                     <div className="flex-1 overflow-y-auto min-h-0">
                       <StepContent
                         step={displayStep}
-                        viewMode={viewMode}
                         onRegenerate={() => regenerateStep(displayStep.number)}
                         onApprove={() => approveStep(displayStep.number)}
                         onNext={() => startStep(displayStep.number + 1)}

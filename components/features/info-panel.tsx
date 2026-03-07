@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { Button } from '@/components/ui/button'
 
 export interface StepDetail {
   stepNumber: number
@@ -22,15 +23,19 @@ export interface StepDetail {
 interface InfoPanelProps {
   stepDetail: StepDetail
   defaultActiveTab?: 'input' | 'output' | 'system' | 'response'
+  onRegenerate?: () => void
+  onApprove?: () => void
+  onNext?: () => void
+  isLast?: boolean
 }
 
 type TabType = 'input' | 'output' | 'system' | 'response'
 type ViewMode = 'rendered' | 'raw'
 
 const tabNames: { key: TabType; label: string; icon: string }[] = [
+  { key: 'system', label: '系统提示', icon: '⚙️' },
   { key: 'input', label: '输入', icon: '📥' },
   { key: 'output', label: '输出', icon: '📤' },
-  { key: 'system', label: '系统提示', icon: '⚙️' },
   { key: 'response', label: '原始响应', icon: '📊' },
 ]
 
@@ -67,6 +72,10 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 export const InfoPanel: React.FC<InfoPanelProps> = ({
   stepDetail,
   defaultActiveTab = 'input',
+  onRegenerate,
+  onApprove,
+  onNext,
+  isLast,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab)
   const [viewMode, setViewMode] = useState<ViewMode>('rendered')
@@ -109,32 +118,71 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         ))}
       </div>
 
-      {/* 视图切换 - 仅在非响应标签页显示 */}
-      {!isJson && (
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4 flex-shrink-0">
-          <span className="text-sm text-gray-500 mr-2">查看方式：</span>
-          <button
-            onClick={() => setViewMode('rendered')}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              viewMode === 'rendered'
-                ? 'bg-gray-200 text-gray-900 font-medium'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            渲染视图
-          </button>
-          <button
-            onClick={() => setViewMode('raw')}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              viewMode === 'raw'
-                ? 'bg-gray-200 text-gray-900 font-medium'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            原始格式
-          </button>
+      {/* 视图切换和操作按钮 */}
+      <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          {!isJson && (
+            <>
+              <span className="text-sm text-gray-500 mr-2">查看方式：</span>
+              <button
+                onClick={() => setViewMode('rendered')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  viewMode === 'rendered'
+                    ? 'bg-gray-200 text-gray-900 font-medium'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                渲染视图
+              </button>
+              <button
+                onClick={() => setViewMode('raw')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  viewMode === 'raw'
+                    ? 'bg-gray-200 text-gray-900 font-medium'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                原始格式
+              </button>
+            </>
+          )}
         </div>
-      )}
+
+        {/* 操作按钮 */}
+        <div className="flex gap-3">
+          {onRegenerate && (
+            <Button
+              onClick={() => {
+                setActiveTab('output')
+                onRegenerate()
+              }}
+              size="sm"
+            >
+              🔄 生成
+            </Button>
+          )}
+          {onApprove && !isLast && onNext && (
+            <Button
+              onClick={() => {
+                onApprove()
+                onNext()
+              }}
+              size="sm"
+            >
+              ➡️ 下一步
+            </Button>
+          )}
+          {onApprove && isLast && (
+            <Button
+              onClick={onApprove}
+              size="sm"
+              className="bg-gradient-to-r from-green-600 to-emerald-600"
+            >
+              ✅ 完成
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* 计时信息 */}
       {stepDetail.timing && (
