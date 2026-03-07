@@ -38,36 +38,9 @@ export function useProjectDetail() {
     { number: 4, name: stepNames[3], status: 'pending' },
     { number: 5, name: stepNames[4], status: 'pending' }
   ])
+  const [currentOutput, setCurrentOutput] = useState('')
+  const [showCurrentOutput, setShowCurrentOutput] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(1)
-
-  // 流式输出辅助函数
-  const streamOutput = useCallback(async (
-    text: string,
-    stepNum: number,
-    delay: number = 15
-  ) => {
-    let content = ''
-    for (let i = 0; i < text.length; i++) {
-      content += text[i]
-      // 更新步骤详情的输出内容
-      setSteps(prev => prev.map(step => {
-        if (step.number === stepNum && step.detail) {
-          return {
-            ...step,
-            detail: {
-              ...step.detail,
-              output: content
-            },
-            data: content  // 同时更新data，确保显示内容同步
-          }
-        }
-        return step
-      }))
-      // 随机延迟，模拟真实的流式体验
-      await new Promise(resolve => setTimeout(resolve, Math.random() * delay + delay / 2))
-    }
-    return content
-  }, [])
 
   useEffect(() => {
     const name = searchParams.get('name')
@@ -104,7 +77,11 @@ export function useProjectDetail() {
     addLog('info', '开始生成步骤 ' + stepNum + ': ' + step.name)
 
     try {
+      setShowCurrentOutput(true)
+      setCurrentOutput('正在调用 API...\n')
+
       const startTime = new Date()
+      let displayContent = '正在调用 API...\n'
       let inputContent = ''
 
       let response: Response
@@ -146,11 +123,17 @@ export function useProjectDetail() {
       addLog('info', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - 输入：${inputDesc}`,
         `输入内容预览：${truncateText(inputContent, 300)}`)
 
+      displayContent += '\n发送请求到 ' + endpoint + '...\n'
+      setCurrentOutput(displayContent)
+
       response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+
+      displayContent += '\n收到 API 响应...\n'
+      setCurrentOutput(displayContent)
 
       const result = await response.json()
       const endTime = new Date()
@@ -160,8 +143,9 @@ export function useProjectDetail() {
         throw new Error(result.msg || 'API 调用失败')
       }
 
-      // 流式输出内容到步骤详情的 output 中
-      await streamOutput(result.data, stepNum)
+      displayContent += '\n✅ 生成成功！\n'
+      displayContent += '\n' + result.data
+      setCurrentOutput(displayContent)
 
       addLog('info', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - 输出成功生成`,
         `输出内容预览：${truncateText(result.data, 500)}`)
@@ -181,6 +165,7 @@ export function useProjectDetail() {
         s.number === stepNum ? {
           ...s,
           status: 'reviewing',
+          data: result.data,
           rawContent: result.data,
           detail: stepDetail
         } : s
@@ -197,6 +182,10 @@ export function useProjectDetail() {
 
       const endTime = new Date()
 
+      setShowCurrentOutput(true)
+      setCurrentOutput(prev => prev + '\n❌ API 调用失败: ' + (error as any).message + '\n')
+      setCurrentOutput(prev => prev + '\n使用模拟数据作为备用...\n')
+
       addLog('error', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - API调用失败`,
         (error as any).message)
       addLog('warn', `步骤 ${stepNum} - 使用模拟数据作为备用`, '将生成标准模板内容')
@@ -208,8 +197,8 @@ export function useProjectDetail() {
         fallbackContent = fallbackContent.replace('{projectName}', projectName)
       }
 
-      // 流式输出备用内容到步骤详情的 output 中
-      await streamOutput(fallbackContent, stepNum)
+      setCurrentOutput(prev => prev + '\n使用模拟数据完成！\n')
+      setCurrentOutput(prev => prev + '\n' + fallbackContent)
 
       const stepDetail = {
         stepNumber: stepNum,
@@ -234,7 +223,7 @@ export function useProjectDetail() {
     } finally {
       setCurrentStep(-1)
     }
-  }, [steps, requirements, projectName, addLog, streamOutput])
+  }, [steps, requirements, projectName, addLog])
 
   const regenerateStep = useCallback(async (stepNum: number) => {
     await startStep(stepNum)
@@ -244,6 +233,7 @@ export function useProjectDetail() {
     setSteps(prev => prev.map(s =>
       s.number === stepNum ? { ...s, status: 'approved' } : s
     ))
+    setShowCurrentOutput(false)
     addLog('info', '步骤 ' + stepNum + ' 审核通过！')
   }, [addLog])
 
@@ -329,6 +319,9 @@ export function useProjectDetail() {
     steps,
     selectedStep,
     setSelectedStep,
+    currentOutput,
+    showCurrentOutput,
+    setShowCurrentOutput,
     logs,
     logsExpanded,
     setLogsExpanded,
