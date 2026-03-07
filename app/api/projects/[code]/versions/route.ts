@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server'
 import { initDatabase } from '@/lib/database'
 import {
   createProjectVersion,
-  getProjectVersions,
-  publishProjectVersion,
-  getProjectVersionById
+  getProjectVersions
 } from '@/lib/project-db'
 
+// 确保数据库初始化
 initDatabase()
 
+// 获取项目版本列表
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
@@ -26,6 +26,7 @@ export async function GET(
   }
 }
 
+// 创建或更新项目版本（版本号相同时覆盖）
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
@@ -33,44 +34,19 @@ export async function POST(
   try {
     const { code } = await params
     const body = await request.json()
-    const { versionNumber, versionName, isPublished } = body
+    const { versionNumber, versionName } = body
 
     const version = createProjectVersion(
       code,
       versionNumber,
-      versionName,
-      isPublished || false
+      versionName
     )
 
     return NextResponse.json({ version })
   } catch (error) {
-    console.error('创建版本失败:', error)
+    console.error('保存版本失败:', error)
     return NextResponse.json(
-      { error: '创建版本失败' },
-      { status: 500 }
-    )
-  }
-}
-
-// 发布版本
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ code: string }> }
-) {
-  try {
-    const body = await request.json()
-    const { id } = body
-
-    const version = publishProjectVersion(id)
-    if (!version) {
-      return NextResponse.json({ error: '版本不存在' }, { status: 404 })
-    }
-
-    return NextResponse.json({ version })
-  } catch (error) {
-    console.error('发布版本失败:', error)
-    return NextResponse.json(
-      { error: '发布版本失败' },
+      { error: '保存版本失败' },
       { status: 500 }
     )
   }

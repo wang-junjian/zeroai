@@ -9,7 +9,6 @@ import {
   updateProjectStep,
   getProjectVersions,
   createProjectVersion,
-  publishProjectVersion,
   getProjectLogs,
   createProjectLog,
   clearProjectLogs
@@ -61,7 +60,7 @@ export async function PUT(
 
     let existingProject = getProjectByCode(code)
 
-    if (!existingProject) {
+    if (existingProject) {
       // 更新项目
       updateProject(code, {
         name: project.name,

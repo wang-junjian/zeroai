@@ -28,7 +28,8 @@ export default function ProjectDetail() {
     startProject,
     versions,
     createVersion,
-    publishVersion
+    selectedVersion,
+    loadVersion
   } = useProjectDetail()
 
   const getDisplayStep = () => {
@@ -165,7 +166,8 @@ export default function ProjectDetail() {
           <VersionManager
             versions={versions}
             onCreateVersion={createVersion}
-            onPublishVersion={publishVersion}
+            onLoadVersion={loadVersion}
+            selectedVersion={selectedVersion}
           />
         </div>
       </div>
