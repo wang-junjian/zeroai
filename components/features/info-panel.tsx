@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export interface StepDetail {
   stepNumber: number
@@ -23,6 +25,7 @@ interface InfoPanelProps {
 }
 
 type TabType = 'input' | 'output' | 'system' | 'response'
+type ViewMode = 'rendered' | 'raw'
 
 const tabNames: { key: TabType; label: string; icon: string }[] = [
   { key: 'input', label: '输入', icon: '📥' },
@@ -31,86 +34,72 @@ const tabNames: { key: TabType; label: string; icon: string }[] = [
   { key: 'response', label: '原始响应', icon: '📊' },
 ]
 
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  if (!content) return <div className="text-gray-400 italic">无内容</div>
+
+  return (
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-6
+        prose prose-sm max-w-none
+        prose-headings:font-semibold prose-headings:text-gray-900
+        prose-h1:text-xl prose-h1:mb-4
+        prose-h2:text-lg prose-h2:mb-3 prose-h2:mt-6
+        prose-h3:text-base prose-h3:mb-2 prose-h3:mt-4
+        prose-p:text-gray-700 prose-p:leading-relaxed
+        prose-pre:bg-gray-900 prose-pre:text-gray-100
+        prose-pre:rounded-lg prose-pre:p-4
+        prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+        prose-code:before:content-none prose-code:after:content-none
+        prose-pre:code:bg-transparent prose-pre:code:p-0
+        prose-ul:my-2 prose-li:my-0.5
+        prose-table:border-collapse prose-table:w-full
+        prose-th:bg-gray-100 prose-th:border prose-th:px-3 prose-th:py-2
+        prose-td:border prose-td:px-3 prose-td:py-2
+      ">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {content}
+        </ReactMarkdown>
+      </div>
+    </div>
+  )
+}
+
 export const InfoPanel: React.FC<InfoPanelProps> = ({
   stepDetail,
-  defaultActiveTab = 'output',
+  defaultActiveTab = 'input',
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab)
+  const [viewMode, setViewMode] = useState<ViewMode>('rendered')
 
-  const renderContent = () => {
+  const getTabContent = () => {
     switch (activeTab) {
       case 'input':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <span>📝</span>
-              <span>用户输入</span>
-            </div>
-            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
-                {stepDetail.input || '无输入内容'}
-              </pre>
-            </div>
-          </div>
-        )
+        return stepDetail.input || ''
       case 'output':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <span>✨</span>
-              <span>AI 输出</span>
-            </div>
-            <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
-                {stepDetail.output || '无输出内容'}
-              </pre>
-            </div>
-          </div>
-        )
+        return stepDetail.output || ''
       case 'system':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <span>🤖</span>
-              <span>系统提示词</span>
-            </div>
-            <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
-                {stepDetail.systemPrompt || '无系统提示词'}
-              </pre>
-            </div>
-          </div>
-        )
+        return stepDetail.systemPrompt || ''
       case 'response':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <span>📊</span>
-              <span>原始响应</span>
-            </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
-                {stepDetail.rawResponse
-                  ? JSON.stringify(stepDetail.rawResponse, null, 2)
-                  : '无原始响应数据'}
-              </pre>
-            </div>
-          </div>
-        )
+        return stepDetail.rawResponse
+          ? JSON.stringify(stepDetail.rawResponse, null, 2)
+          : ''
     }
   }
 
+  const isJson = activeTab === 'response'
+  const content = getTabContent()
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full">
       {/* 标签页导航 */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 mb-4 flex-shrink-0">
         {tabNames.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeTab === tab.key
-                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                ? 'bg-indigo-600 text-white shadow-md'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -120,9 +109,36 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         ))}
       </div>
 
+      {/* 视图切换 - 仅在非响应标签页显示 */}
+      {!isJson && (
+        <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4 flex-shrink-0">
+          <span className="text-sm text-gray-500 mr-2">查看方式：</span>
+          <button
+            onClick={() => setViewMode('rendered')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              viewMode === 'rendered'
+                ? 'bg-gray-200 text-gray-900 font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            渲染视图
+          </button>
+          <button
+            onClick={() => setViewMode('raw')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              viewMode === 'raw'
+                ? 'bg-gray-200 text-gray-900 font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            原始格式
+          </button>
+        </div>
+      )}
+
       {/* 计时信息 */}
       {stepDetail.timing && (
-        <div className="flex items-center gap-6 text-sm text-gray-500 bg-gray-50 rounded-xl p-4">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4 flex-shrink-0">
           <div className="flex items-center gap-2">
             <span>⏱️</span>
             <span>开始时间：</span>
@@ -154,8 +170,18 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
       )}
 
       {/* 内容区域 */}
-      <div className="animate-fade-in">
-        {renderContent()}
+      <div className="flex-1 min-h-0 animate-fade-in overflow-hidden">
+        {viewMode === 'raw' || isJson ? (
+          <textarea
+            value={content}
+            readOnly
+            className="w-full h-full p-4 font-mono text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none resize-none"
+          />
+        ) : (
+          <div className="w-full h-full bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col">
+            <MarkdownRenderer content={content} />
+          </div>
+        )}
       </div>
     </div>
   )
