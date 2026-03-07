@@ -15,8 +15,6 @@ export default function ProjectDetail() {
     steps,
     selectedStep,
     setSelectedStep,
-    currentOutput,
-    showCurrentOutput,
     logs,
     logsExpanded,
     setLogsExpanded,
@@ -71,28 +69,6 @@ export default function ProjectDetail() {
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-4xl mx-auto h-full flex flex-col gap-4">
-              {showCurrentOutput && steps.some(s => s.status === 'generating') && (
-                <Card className="flex-shrink-0">
-                  <CardBody className="p-4">
-                    <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                      正在生成：{steps.find(s => s.status === 'generating')?.name}
-                    </h2>
-                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-green-400 h-48 overflow-y-auto relative">
-                      <pre className="whitespace-pre-wrap">{currentOutput}</pre>
-                      <div className="absolute bottom-3 left-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                          <span className="text-gray-400 text-xs">AI 正在思考...</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              )}
-
               {displayStep && displayStep.data ? (
                 <Card className="flex-1 flex flex-col min-h-0">
                   <CardBody className="p-4 flex flex-col h-full overflow-hidden">
