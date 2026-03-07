@@ -67,14 +67,17 @@ zeroai/
 │   │       ├── hooks/                         # 自定义 Hooks
 │   │       │   ├── useProjectDetail.ts       # 项目详情状态管理
 │   │       │   └── useLogs.ts                # 日志状态管理
-│   │       ├── types.ts                       # 类型定义
-│   │       ├── constants.ts                   # 常量定义
+│   │       ├── types.ts                       # 类型定义（导出统一类型）
+│   │       ├── constants.ts                   # 常量定义（导出统一常量）
 │   │       ├── utils.ts                       # 工具函数
 │   │       └── page.tsx                       # 项目详情主页面
 │   ├── globals.css                            # 全局样式
 │   ├── layout.tsx                             # 根布局
 │   └── page.tsx                               # 首页（项目列表）
 ├── components/                                 # 通用组件
+│   ├── features/                              # 功能组件
+│   │   ├── step-indicator.tsx                # 步骤指示器
+│   │   └── info-panel.tsx                     # 信息面板
 │   └── ui/                                    # UI 基础组件
 │       ├── button.tsx
 │       ├── card.tsx
@@ -82,7 +85,12 @@ zeroai/
 ├── lib/                                        # 核心库
 │   ├── ai-service.ts                          # AI 服务封装
 │   ├── database.ts                            # 数据库初始化
-│   └── project-db.ts                          # 项目数据库操作
+│   ├── project-db.ts                          # 项目数据库操作
+│   └── api-utils.ts                          # API 响应处理工具
+├── types/                                     # 项目级类型定义
+│   └── index.ts                              # 统一类型管理
+├── constants/                                 # 项目级常量定义
+│   └── project.ts                            # 统一常量管理
 ├── prompts/                                    # AI 提示词
 │   ├── analyze-requirements.md                # 需求分析提示词
 │   ├── design-interfaces.md                   # 接口设计提示词
@@ -119,7 +127,98 @@ zeroai/
 | `designBusinessLogic()` | 业务逻辑设计 |
 | `generateCode()` | 代码生成 |
 
-### 2. 数据库模块
+### 2. 类型管理模块 (`types/index.ts`)
+
+统一管理项目的类型定义，提供完整的类型系统支持。
+
+#### 核心类型
+
+```typescript
+// 项目
+interface Project {
+  code: string           // 项目唯一编码
+  name: string           // 项目名称
+  requirements: string   // 需求描述
+  current_step: number   // 当前步骤
+  status: string         // 状态
+}
+
+// 项目步骤
+interface ProjectStep {
+  project_code: string   // 所属项目
+  step_number: number    // 步骤编号 1-5
+  step_name: string      // 步骤名称
+  status: string         // 状态: pending/generating/reviewing/approved/failed
+  data: string           // 主要数据（Markdown）
+  raw_content: string    // 原始内容
+  system_prompt: string  // 系统提示词
+  user_prompt: string    // 用户提示词
+  input: string          // 输入内容
+  output: string         // 输出内容
+  raw_response: string   // 原始响应 JSON
+  timing: string         // 计时信息 JSON
+}
+
+// 项目版本
+interface ProjectVersion {
+  project_code: string        // 所属项目
+  version_number: string      // 版本号
+  version_name: string        // 版本名称
+  project_snapshot: string    // 项目快照 JSON
+  steps_snapshot: string      // 步骤快照 JSON
+}
+
+// 项目日志
+interface ProjectLog {
+  project_code: string   // 所属项目
+  level: string          // 级别: info/warn/error
+  title: string          // 标题
+  content: string        // 内容
+}
+
+// API 响应格式
+interface ApiResponse<T = any> {
+  code: string
+  msg: string
+  data: T
+}
+```
+
+### 3. 常量管理模块 (`constants/project.ts`)
+
+统一管理项目的常量定义，包括：
+
+- **步骤名称**：`STEP_NAMES` - 五个开发步骤的中文名称
+- **系统提示词**：`SYSTEM_PROMPTS` - 各步骤的 AI 提示词
+- **API 端点**：`API_ENDPOINTS` - 各步骤对应的 API 路由
+- **备用内容**：`FALLBACK_CONTENTS` - 失败时的备用响应内容
+
+提供访问函数：
+
+```typescript
+// 获取步骤对应的 API 端点
+function getApiEndpoint(stepNumber: number): string
+
+// 获取步骤名称
+function getStepName(stepNumber: number): string
+
+// 获取系统提示词
+function getSystemPrompt(stepNumber: number): string
+
+// 获取备用内容（支持替换变量）
+function getFallbackContent(stepNumber: number, projectName?: string): string
+```
+
+### 4. API 响应处理模块 (`lib/api-utils.ts`)
+
+提供通用的 API 响应处理工具，包括：
+
+- **`successResponse(data, msg)`**：成功响应
+- **`errorResponse(msg, code, status)`**：错误响应
+- **`createApiHandler(handler)`**：API 路由处理器包装器，自动处理错误
+- **`validateRequest(req, requiredFields)`**：请求参数验证
+
+### 5. 数据库模块
 
 #### `lib/database.ts`
 
@@ -177,7 +276,7 @@ interface ProjectLog {
 }
 ```
 
-### 3. 项目详情 Hook (`app/projects/[code]/hooks/useProjectDetail.ts`)
+### 6. 项目详情 Hook (`app/projects/[code]/hooks/useProjectDetail.ts`)
 
 项目详情页面的核心状态管理逻辑。
 
@@ -208,7 +307,7 @@ interface ProjectLog {
 
 使用防抖机制，数据变更后延迟 1 秒自动保存到数据库。
 
-### 4. Word 导出组件 (`app/projects/[code]/components/ExportToWord.tsx`)
+### 7. Word 导出组件 (`app/projects/[code]/components/ExportToWord.tsx`)
 
 将项目内容导出为 Word 文档。
 
@@ -221,50 +320,218 @@ interface ProjectLog {
 - 代码块（灰色背景）
 - 分隔线
 
-### 5. API 路由
+### 8. API 路由
+
+所有 API 路由都使用统一的响应格式和错误处理机制，通过 `lib/api-utils.ts` 中提供的工具函数实现。
 
 #### 需求分析 (`api/analyze/route.ts`)
+```typescript
+import { NextRequest } from 'next/server'
+import { analyzeRequirements } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
+
+interface AnalyzeRequest {
+  description: string
+}
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { description } = await validateRequest<AnalyzeRequest>(req, ['description'])
+  return await analyzeRequirements(description)
+})
 ```
+**请求**:
+```typescript
 POST /api/analyze
 Body: { description: string }
-Response: { code: string, msg: string, data: string }
+```
+**响应**:
+```typescript
+{
+  code: string;    // "000000" 表示成功
+  msg: string;     // 响应消息
+  data: string;    // Markdown 格式的需求分析结果
+}
 ```
 
 #### 接口设计 (`api/design/interfaces/route.ts`)
+```typescript
+import { NextRequest } from 'next/server'
+import { designInterfaces } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
+
+interface DesignInterfacesRequest {
+  requirements: string
+}
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { requirements } = await validateRequest<DesignInterfacesRequest>(req, ['requirements'])
+  return await designInterfaces(requirements)
+})
 ```
+**请求**:
+```typescript
 POST /api/design/interfaces
 Body: { requirements: string }
 ```
 
 #### 数据库设计 (`api/design/database/route.ts`)
+```typescript
+import { NextRequest } from 'next/server'
+import { designDatabase } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
+
+interface DesignDatabaseRequest {
+  requirements: string
+}
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { requirements } = await validateRequest<DesignDatabaseRequest>(req, ['requirements'])
+  return await designDatabase(requirements)
+})
 ```
+**请求**:
+```typescript
 POST /api/design/database
 Body: { requirements: string }
 ```
 
 #### 业务逻辑设计 (`api/design/business-logic/route.ts`)
+```typescript
+import { NextRequest } from 'next/server'
+import { designBusinessLogic } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
+
+interface DesignBusinessLogicRequest {
+  interfaces: string
+}
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { interfaces } = await validateRequest<DesignBusinessLogicRequest>(req, ['interfaces'])
+  return await designBusinessLogic(interfaces)
+})
 ```
+**请求**:
+```typescript
 POST /api/design/business-logic
 Body: { interfaces: string }
 ```
 
 #### 代码生成 (`api/generate/route.ts`)
+```typescript
+import { NextRequest } from 'next/server'
+import { generateCode } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
+
+interface GenerateCodeRequest {
+  requirements: string
+  interfaces: string
+  businessLogic: string
+}
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { requirements, interfaces, businessLogic } = await validateRequest<GenerateCodeRequest>(
+    req,
+    ['requirements', 'interfaces', 'businessLogic']
+  )
+  return await generateCode(requirements, interfaces, businessLogic)
+})
 ```
+**请求**:
+```typescript
 POST /api/generate
-Body: { requirements, interfaces, businessLogic }
+Body: {
+  requirements: string,
+  interfaces: string,
+  businessLogic: string
+}
 ```
 
 #### 项目管理 (`api/projects/[code]/route.ts`)
-```
-GET  /api/projects/[code]     # 获取项目
-PUT  /api/projects/[code]     # 更新项目
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { getProjectByCode, updateProject } from '@/lib/project-db'
+
+// GET 方法 - 获取项目详情
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  const project = getProjectByCode(params.code)
+  if (!project) {
+    return NextResponse.json(
+      { code: '000003', msg: '项目未找到', data: null },
+      { status: 404 }
+    )
+  }
+  return NextResponse.json({
+    code: '000000',
+    msg: '查询成功',
+    data: project
+  })
+}
+
+// PUT 方法 - 更新项目
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  const { project, steps } = await req.json()
+  try {
+    const updatedProject = updateProject(params.code, project)
+    return NextResponse.json({
+      code: '000000',
+      msg: '更新成功',
+      data: updatedProject
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { code: '000001', msg: '更新失败', data: null },
+      { status: 500 }
+    )
+  }
+}
 ```
 
 #### 版本管理 (`api/projects/[code]/versions/route.ts`)
-```
-POST /api/projects/[code]/versions  # 创建版本
-```
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { getProjectByCode, createProjectVersion } from '@/lib/project-db'
 
+// POST 方法 - 创建项目版本
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  const { versionNumber, versionName } = await req.json()
+
+  const project = getProjectByCode(params.code)
+  if (!project) {
+    return NextResponse.json(
+      { code: '000003', msg: '项目未找到', data: null },
+      { status: 404 }
+    )
+  }
+
+  try {
+    const version = createProjectVersion(
+      params.code,
+      versionNumber,
+      versionName
+    )
+
+    return NextResponse.json({
+      code: '000000',
+      msg: '创建版本成功',
+      data: version
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { code: '000001', msg: '创建版本失败', data: null },
+      { status: 500 }
+    )
+  }
+}
+```
 ## 数据库设计
 
 ### 项目相关表

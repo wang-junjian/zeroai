@@ -100,27 +100,67 @@ zeroai/
 │   │   └── [code]/               # 项目详情页
 │   │       ├── components/       # 项目详情组件
 │   │       ├── hooks/            # 项目详情 Hooks
+│   │       ├── types.ts          # 类型定义（导出统一类型）
+│   │       ├── constants.ts      # 常量定义（导出统一常量）
+│   │       ├── utils.ts          # 工具函数
 │   │       └── page.tsx          # 项目详情主页面
-│   ├── globals.css                # 全局样式
-│   ├── layout.tsx                 # 根布局
-│   └── page.tsx                   # 首页（项目列表）
-├── components/                    # 通用组件
-├── lib/                           # 核心库
-│   ├── ai-service.ts              # AI 服务封装
-│   ├── database.ts                # 数据库初始化
-│   └── project-db.ts              # 项目数据库操作
-├── prompts/                       # AI 提示词
-│   ├── analyze-requirements.md
-│   ├── design-interfaces.md
-│   ├── design-database.md
-│   ├── design-business-logic.md
-│   └── generate-code.md
-├── public/                        # 静态资源
-├── .env.example                   # 环境变量模板
-├── tailwind.config.ts             # Tailwind 配置
-├── tsconfig.json                  # TypeScript 配置
-└── zeroai.db                      # SQLite 数据库文件（自动生成）
+│   ├── globals.css               # 全局样式
+│   ├── layout.tsx                # 根布局
+│   └── page.tsx                  # 首页（项目列表）
+├── components/                   # 通用组件
+│   ├── features/                 # 功能组件
+│   │   ├── step-indicator.tsx    # 步骤指示器
+│   │   └── info-panel.tsx        # 信息面板
+│   └── ui/                       # UI 基础组件
+├── lib/                          # 核心库
+│   ├── ai-service.ts             # AI 服务封装
+│   ├── database.ts               # 数据库初始化
+│   ├── project-db.ts             # 项目数据库操作
+│   └── api-utils.ts              # API 响应处理工具
+├── types/                        # 项目级类型定义
+│   └── index.ts                  # 统一类型管理
+├── constants/                    # 项目级常量定义
+│   └── project.ts                # 统一常量管理
+├── public/                       # 静态资源
+├── .env.example                  # 环境变量模板
+├── tailwind.config.ts            # Tailwind 配置
+├── tsconfig.json                 # TypeScript 配置
+└── zeroai.db                     # SQLite 数据库文件（自动生成）
 ```
+
+## 核心模块
+
+### 类型管理 (`types/index.ts`)
+
+统一管理项目的类型定义，包括：
+- `Project` - 项目信息类型
+- `Step` - 步骤类型
+- `StepDetail` - 步骤详情类型
+- `LogEntry` - 日志条目类型
+- `ProjectVersion` - 项目版本类型
+- `ApiResponse<T>` - API 响应格式
+
+### 常量管理 (`constants/project.ts`)
+
+统一管理项目的常量定义，包括：
+- `STEP_NAMES` - 步骤名称数组
+- `API_ENDPOINTS` - API 端点数组
+- `SYSTEM_PROMPTS` - 系统提示词数组
+- `FALLBACK_CONTENTS` - 备用内容数组
+
+提供访问函数：
+- `getApiEndpoint(stepNumber)` - 获取步骤对应的 API 端点
+- `getStepName(stepNumber)` - 获取步骤名称
+- `getSystemPrompt(stepNumber)` - 获取系统提示词
+- `getFallbackContent(stepNumber, projectName)` - 获取备用内容（支持变量替换）
+
+### API 响应处理 (`lib/api-utils.ts`)
+
+提供通用的 API 响应处理工具：
+- `successResponse(data, msg)` - 成功响应
+- `errorResponse(msg, code, status)` - 错误响应
+- `createApiHandler(handler)` - API 路由处理器包装器
+- `validateRequest(req, requiredFields)` - 请求参数验证
 
 ## 数据库
 

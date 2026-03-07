@@ -1,22 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { analyzeRequirements } from '@/lib/ai-service';
+import { NextRequest } from 'next/server'
+import { analyzeRequirements } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
-export async function POST(req: NextRequest) {
-  try {
-    const { description } = await req.json();
-    const result = await analyzeRequirements(description);
-
-    return NextResponse.json({
-      code: '000000',
-      msg: '调用成功',
-      data: result,
-    });
-  } catch (error) {
-    console.error('分析需求失败:', error);
-    return NextResponse.json({
-      code: '000001',
-      msg: '分析需求失败',
-      data: null,
-    });
-  }
+interface AnalyzeRequest {
+  description: string
 }
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { description } = await validateRequest<AnalyzeRequest>(req, ['description'])
+  return await analyzeRequirements(description)
+})

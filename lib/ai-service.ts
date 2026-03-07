@@ -1,22 +1,10 @@
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
+import { SYSTEM_PROMPTS } from '@/constants/project';
 
 const openai = new OpenAI({
   baseURL: process.env.OPENAI_BASE_URL || 'https://api.longcat.chat/openai/',
   apiKey: process.env.OPENAI_API_KEY || 'NONE',
 });
-
-// 读取提示词文件
-const readPrompt = (fileName: string): string => {
-  try {
-    const filePath = path.join(process.cwd(), 'prompts', fileName);
-    return fs.readFileSync(filePath, 'utf-8').trim();
-  } catch (error) {
-    console.error(`读取提示词文件失败 ${fileName}:`, error);
-    throw new Error(`提示词文件 ${fileName} 未找到或无法读取`);
-  }
-};
 
 export const generateResponse = async (systemPrompt: string, userPrompt: string) => {
   try {
@@ -38,7 +26,7 @@ export const generateResponse = async (systemPrompt: string, userPrompt: string)
 };
 
 export const analyzeRequirements = async (description: string) => {
-  const systemPrompt = readPrompt('analyze-requirements.md');
+  const systemPrompt = SYSTEM_PROMPTS[0];
 
   const userPrompt = `请分析以下软件项目描述的需求：
 
@@ -48,7 +36,7 @@ ${description}`;
 };
 
 export const designInterfaces = async (requirements: string) => {
-  const systemPrompt = readPrompt('design-interfaces.md');
+  const systemPrompt = SYSTEM_PROMPTS[1];
 
   const userPrompt = `请根据以下需求分析结果设计软件系统的接口：
 
@@ -58,7 +46,7 @@ ${requirements}`;
 };
 
 export const designDatabase = async (requirements: string) => {
-  const systemPrompt = readPrompt('design-database.md');
+  const systemPrompt = SYSTEM_PROMPTS[2];
 
   const userPrompt = `请根据以下需求分析结果设计软件系统的数据库结构：
 
@@ -68,7 +56,7 @@ ${requirements}`;
 };
 
 export const designBusinessLogic = async (interfaces: string) => {
-  const systemPrompt = readPrompt('design-business-logic.md');
+  const systemPrompt = SYSTEM_PROMPTS[3];
 
   const userPrompt = `请根据以下接口设计结果设计软件系统的处理逻辑：
 
@@ -78,7 +66,7 @@ ${interfaces}`;
 };
 
 export const generateCode = async (requirements: string, interfaces: string, businessLogic: string) => {
-  const systemPrompt = readPrompt('generate-code.md');
+  const systemPrompt = SYSTEM_PROMPTS[4];
 
   const userPrompt = `请根据以下需求分析结果、接口设计结果和处理逻辑设计结果生成软件源代码：
 

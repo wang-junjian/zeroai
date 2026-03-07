@@ -1,22 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { designBusinessLogic } from '@/lib/ai-service';
+import { NextRequest } from 'next/server'
+import { designBusinessLogic } from '@/lib/ai-service'
+import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
-export async function POST(req: NextRequest) {
-  try {
-    const { interfaces } = await req.json();
-    const result = await designBusinessLogic(interfaces);
-
-    return NextResponse.json({
-      code: '000000',
-      msg: '调用成功',
-      data: result,
-    });
-  } catch (error) {
-    console.error('设计业务逻辑失败:', error);
-    return NextResponse.json({
-      code: '000001',
-      msg: '设计业务逻辑失败',
-      data: null,
-    });
-  }
+interface DesignBusinessLogicRequest {
+  interfaces: string
 }
+
+export const POST = createApiHandler(async (req: NextRequest) => {
+  const { interfaces } = await validateRequest<DesignBusinessLogicRequest>(req, ['interfaces'])
+  return await designBusinessLogic(interfaces)
+})
