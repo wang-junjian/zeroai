@@ -20,7 +20,7 @@ export function useProjectDetail() {
     {
       number: 1,
       name: stepNames[0],
-      status: 'reviewing',
+      status: 'pending',
       data: '请输入项目需求描述',
       detail: {
         stepNumber: 1,
@@ -40,7 +40,7 @@ export function useProjectDetail() {
   ])
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
-  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [selectedStep, setSelectedStep] = useState<number | null>(1)
 
   useEffect(() => {
     const name = searchParams.get('name')

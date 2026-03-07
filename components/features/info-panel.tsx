@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
@@ -79,6 +79,11 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab)
   const [viewMode, setViewMode] = useState<ViewMode>('rendered')
+
+  // 当步骤改变时，重置到默认标签页
+  useEffect(() => {
+    setActiveTab(defaultActiveTab)
+  }, [stepDetail.stepNumber, defaultActiveTab])
 
   const getTabContent = () => {
     switch (activeTab) {
@@ -171,7 +176,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
               }}
               size="sm"
             >
-              ➡️ 下一步
+              ✅ 审核
             </Button>
           )}
           {onApprove && isLast && hasOutput && (

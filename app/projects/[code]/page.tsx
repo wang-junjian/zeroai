@@ -36,7 +36,9 @@ export default function ProjectDetail() {
     const generatingStep = steps.find(s => s.status === 'generating')
     if (generatingStep) return generatingStep
     const lastApproved = [...steps].reverse().find(s => s.status === 'approved')
-    return lastApproved
+    if (lastApproved) return lastApproved
+    // 所有步骤都是 pending 时，返回第一步（需求理解）
+    return steps[0]
   }
 
   const displayStep = getDisplayStep()
@@ -53,11 +55,7 @@ export default function ProjectDetail() {
             {projectName}
           </h1>
           <div className="flex items-center gap-3">
-            {!isRunning && steps.every(s => s.status === 'pending') && (
-              <Button onClick={startProject}>
-                开始生成
-              </Button>
-            )}
+            {/* 隐藏"开始生成"按钮，因为直接进入需求理解步骤 */}
           </div>
         </div>
       </header>
@@ -132,9 +130,7 @@ export default function ProjectDetail() {
                   <CardBody className="p-4 flex flex-col h-full items-center justify-center">
                     <div className="text-gray-400 text-5xl mb-4">📋</div>
                     <h3 className="text-base font-medium text-gray-700 mb-2">
-                      {steps.every(s => s.status === 'pending')
-                        ? '点击"开始生成"开始开发流程'
-                        : '等待生成中...'}
+                      等待生成中...
                     </h3>
                     <p className="text-gray-500 text-sm">
                       选择左侧步骤查看详情
