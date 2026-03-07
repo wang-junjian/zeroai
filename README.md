@@ -198,6 +198,25 @@ npm run build
 npm start
 ```
 
+## 测试
+
+项目使用 Vitest 进行单元测试，已包含以下测试：
+
+- `constants/project.test.ts` - 常量管理模块测试
+- `types/index.test.ts` - 类型定义测试
+- `lib/api-utils.test.ts` - API 工具函数测试
+
+```bash
+# 运行所有测试
+npm run test
+
+# 以开发模式运行测试（监听文件变化）
+npm run test:dev
+
+# 打开测试 UI 界面
+npm run test:ui
+```
+
 ## 许可证
 
 MIT
