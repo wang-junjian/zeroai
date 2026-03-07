@@ -33,15 +33,148 @@ export function useProjectDetail() {
         timing: undefined
       }
     },
-    { number: 2, name: stepNames[1], status: 'pending' },
-    { number: 3, name: stepNames[2], status: 'pending' },
-    { number: 4, name: stepNames[3], status: 'pending' },
-    { number: 5, name: stepNames[4], status: 'pending' }
+    { number: 2, name: stepNames[1], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 2, stepName: stepNames[1], systemPrompt: systemPrompts[1], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+    { number: 3, name: stepNames[2], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 3, stepName: stepNames[2], systemPrompt: systemPrompts[2], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+    { number: 4, name: stepNames[3], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 4, stepName: stepNames[3], systemPrompt: systemPrompts[3], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+    { number: 5, name: stepNames[4], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 5, stepName: stepNames[4], systemPrompt: systemPrompts[4], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } }
   ])
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(1)
   const [versions, setVersions] = useState<any[]>([])
+  const [selectedVersion, setSelectedVersion] = useState<any>(null)
+  const [isDataLoaded, setIsDataLoaded] = useState(false)
+
+  // 加载项目数据
+  useEffect(() => {
+    const loadProjectData = async () => {
+      try {
+        const response = await fetch(`/api/projects/${params.code}`)
+        if (response.ok) {
+          const result = await response.json()
+
+          // 加载版本
+          setVersions(result.versions)
+
+          // 加载项目信息
+          if (result.project) {
+            setProjectName(result.project.name)
+            setRequirements(result.project.requirements)
+            setCurrentStep(result.project.current_step)
+          }
+
+          // 加载步骤信息
+          if (result.steps && result.steps.length > 0) {
+            const loadedSteps = result.steps.map((dbStep: any) => {
+              const stepNumber = dbStep.step_number
+              return {
+                number: stepNumber,
+                name: stepNames[stepNumber - 1],
+                status: dbStep.status,
+                data: dbStep.data,
+                rawContent: dbStep.raw_content,
+                detail: {
+                  stepNumber: dbStep.step_number,
+                  stepName: dbStep.step_name,
+                  systemPrompt: dbStep.system_prompt || systemPrompts[stepNumber - 1],
+                  userPrompt: dbStep.user_prompt || '',
+                  input: dbStep.input || '',
+                  output: dbStep.output || '',
+                  rawResponse: dbStep.raw_response ? JSON.parse(dbStep.raw_response) : null,
+                  timing: dbStep.timing ? JSON.parse(dbStep.timing) : undefined
+                }
+              }
+            })
+
+            // 确保所有5个步骤都有数据
+            const completeSteps = [...Array(5)].map((_, index) => {
+              const stepNumber = index + 1
+              const existingStep = loadedSteps.find((s: any) => s.number === stepNumber)
+
+              if (existingStep) {
+                return existingStep
+              }
+
+              return {
+                number: stepNumber,
+                name: stepNames[index],
+                status: 'pending',
+                data: stepNumber === 1 ? '请输入项目需求描述' : '点击"生成"开始此步骤',
+                detail: {
+                  stepNumber: stepNumber,
+                  stepName: stepNames[index],
+                  systemPrompt: systemPrompts[index],
+                  userPrompt: '',
+                  input: '',
+                  output: '',
+                  rawResponse: null,
+                  timing: undefined
+                }
+              }
+            })
+
+            setSteps(completeSteps)
+          }
+
+          // 加载日志
+          if (result.logs && result.logs.length > 0) {
+            // 这里需要根据日志类型调整，可能需要修改 useLogs 钩子
+            console.log('加载到日志:', result.logs)
+          }
+        }
+        setIsDataLoaded(true)
+      } catch (error) {
+        console.error('加载项目数据失败:', error)
+        setIsDataLoaded(true)
+      }
+    }
+
+    loadProjectData()
+  }, [params.code])
+
+  // 自动保存项目数据到数据库
+  useEffect(() => {
+    if (!isDataLoaded) return
+
+    const saveProjectData = async () => {
+      try {
+        // 将前端 Step 格式转换为数据库格式
+        const dbSteps = steps.map(step => ({
+          step_number: step.number,
+          step_name: step.name,
+          status: step.status,
+          data: step.data || '',
+          raw_content: step.rawContent,
+          system_prompt: step.detail?.systemPrompt,
+          user_prompt: step.detail?.userPrompt,
+          input: step.detail?.input,
+          output: step.detail?.output,
+          raw_response: step.detail?.rawResponse ? JSON.stringify(step.detail.rawResponse) : null,
+          timing: step.detail?.timing ? JSON.stringify(step.detail.timing) : null
+        }))
+
+        await fetch(`/api/projects/${params.code}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project: {
+              name: projectName,
+              requirements,
+              current_step: currentStep,
+              status: 'active'
+            },
+            steps: dbSteps
+          })
+        })
+      } catch (error) {
+        console.error('自动保存失败:', error)
+      }
+    }
+
+    // 防抖：延迟 1 秒保存
+    const timeoutId = setTimeout(saveProjectData, 1000)
+    return () => clearTimeout(timeoutId)
+  }, [steps, projectName, requirements, currentStep, params.code, isDataLoaded])
 
   useEffect(() => {
     const name = searchParams.get('name')
@@ -282,25 +415,112 @@ export function useProjectDetail() {
     }
   }, [approveStep, addLog, steps])
 
-  // 创建版本
-  const createVersion = useCallback(async (versionNumber: string, versionName: string, isPublished: boolean = false) => {
+  // 创建版本（版本号相同时覆盖）
+  const createVersion = useCallback(async (versionNumber: string, versionName: string) => {
     try {
-      console.log('创建版本功能尚未实现')
-      // 这里会调用 API 创建版本
-    } catch (error) {
-      console.error('创建版本失败:', error)
-    }
-  }, [])
+      const response = await fetch(`/api/projects/${params.code}/versions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          versionNumber,
+          versionName
+        })
+      })
 
-  // 发布版本
-  const publishVersion = useCallback(async (versionId: number) => {
-    try {
-      console.log('发布版本功能尚未实现')
-      // 这里会调用 API 发布版本
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || '保存版本失败')
+      }
+
+      const result = await response.json()
+      // 更新版本列表，找到并替换相同版本号的版本
+      setVersions(prev => {
+        const index = prev.findIndex(v => v.version_number === versionNumber)
+        const newVersion = result.version
+        if (index !== -1) {
+          const updatedVersions = [...prev]
+          updatedVersions[index] = newVersion
+          return updatedVersions
+        }
+        return [newVersion, ...prev]
+      })
     } catch (error) {
-      console.error('发布版本失败:', error)
+      console.error('保存版本失败:', error)
+      throw error
     }
-  }, [])
+  }, [params.code])
+
+  // 加载版本
+  const loadVersion = useCallback(async (version: any) => {
+    try {
+      setSelectedVersion(version)
+      addLog('info', `加载版本 ${version.version_number}${version.version_name ? ` - ${version.version_name}` : ''}`)
+
+      // 解析版本快照
+      const projectSnapshot = JSON.parse(version.project_snapshot)
+      const stepsSnapshot = JSON.parse(version.steps_snapshot)
+
+      // 更新项目信息
+      setProjectName(projectSnapshot.name)
+      setRequirements(projectSnapshot.requirements)
+      setCurrentStep(projectSnapshot.current_step)
+
+      // 更新步骤信息
+      const loadedSteps = stepsSnapshot.map((dbStep: any) => {
+        const stepNumber = dbStep.step_number
+        return {
+          number: stepNumber,
+          name: stepNames[stepNumber - 1],
+          status: dbStep.status,
+          data: dbStep.data,
+          rawContent: dbStep.raw_content,
+          detail: {
+            stepNumber: dbStep.step_number,
+            stepName: dbStep.step_name,
+            systemPrompt: dbStep.system_prompt || systemPrompts[stepNumber - 1],
+            userPrompt: dbStep.user_prompt || '',
+            input: dbStep.input || '',
+            output: dbStep.output || '',
+            rawResponse: dbStep.raw_response ? JSON.parse(dbStep.raw_response) : null,
+            timing: dbStep.timing ? JSON.parse(dbStep.timing) : undefined
+          }
+        }
+      })
+
+      // 确保所有5个步骤都有数据
+      const completeSteps = [...Array(5)].map((_, index) => {
+        const stepNumber = index + 1
+        const existingStep = loadedSteps.find((s: any) => s.number === stepNumber)
+
+        if (existingStep) {
+          return existingStep
+        }
+
+        return {
+          number: stepNumber,
+          name: stepNames[index],
+          status: 'pending',
+          data: stepNumber === 1 ? '请输入项目需求描述' : '点击"生成"开始此步骤',
+          detail: {
+            stepNumber: stepNumber,
+            stepName: stepNames[index],
+            systemPrompt: systemPrompts[index],
+            userPrompt: '',
+            input: '',
+            output: '',
+            rawResponse: null,
+            timing: undefined
+          }
+        }
+      })
+
+      setSteps(completeSteps)
+      addLog('info', '版本加载成功！')
+    } catch (error) {
+      console.error('加载版本失败:', error)
+      addLog('error', '加载版本失败: ' + (error as any).message)
+    }
+  }, [params.code, addLog])
 
   const startProject = useCallback(async () => {
     if (isRunning) return
@@ -323,10 +543,10 @@ export function useProjectDetail() {
           timing: undefined
         }
       },
-      { number: 2, name: stepNames[1], status: 'pending' },
-      { number: 3, name: stepNames[2], status: 'pending' },
-      { number: 4, name: stepNames[3], status: 'pending' },
-      { number: 5, name: stepNames[4], status: 'pending' }
+      { number: 2, name: stepNames[1], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 2, stepName: stepNames[1], systemPrompt: systemPrompts[1], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+      { number: 3, name: stepNames[2], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 3, stepName: stepNames[2], systemPrompt: systemPrompts[2], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+      { number: 4, name: stepNames[3], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 4, stepName: stepNames[3], systemPrompt: systemPrompts[3], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } },
+      { number: 5, name: stepNames[4], status: 'pending', data: '点击"生成"开始此步骤', detail: { stepNumber: 5, stepName: stepNames[4], systemPrompt: systemPrompts[4], userPrompt: '', input: '', output: '', rawResponse: null, timing: undefined } }
     ])
     addLog('info', '工作流准备完成！请查看第一步的系统提示，输入项目需求后点击"生成"按钮。')
     setIsRunning(false)
@@ -354,7 +574,8 @@ export function useProjectDetail() {
     goToNextStep,
     startProject,
     versions,
+    selectedVersion,
     createVersion,
-    publishVersion
+    loadVersion
   }
 }

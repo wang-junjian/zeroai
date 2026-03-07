@@ -198,61 +198,75 @@ export function deleteProjectSteps(projectCode: string) {
   return stmt.run(projectCode)
 }
 
-// 保存项目版本
+// 保存项目版本（版本号相同时覆盖）
 export function createProjectVersion(
   projectCode: string,
   versionNumber: string,
-  versionName: string,
-  isPublished: boolean = false
+  versionName: string
 ) {
-  // 获取项目当前状态
-  const project = getProjectByCode(projectCode)
+  // 如果项目不存在，自动创建一个
+  let project = getProjectByCode(projectCode)
   if (!project) {
-    throw new Error('项目不存在')
+    project = createProject({
+      code: projectCode,
+      name: '未命名项目',
+      requirements: '',
+      current_step: 0,
+      status: 'draft'
+    })
   }
 
   // 获取项目当前步骤
   const steps = getProjectSteps(projectCode)
 
-  // 创建版本快照
-  const version: Omit<ProjectVersion, 'id' | 'create_time' | 'publish_time'> = {
-    project_code: projectCode,
-    version_number: versionNumber,
-    version_name: versionName,
-    is_published: isPublished ? 1 : 0,
-    project_snapshot: JSON.stringify(project),
-    steps_snapshot: JSON.stringify(steps)
-  }
+  // 检查是否已存在相同版本号
+  const existingVersion = db.prepare(`
+    SELECT id FROM t_project_version
+    WHERE project_code = ? AND version_number = ?
+  `).get(projectCode, versionNumber) as ProjectVersion | undefined
 
-  const stmt = db.prepare(`
-    INSERT INTO t_project_version (
-      project_code, version_number, version_name, is_published,
-      project_snapshot, steps_snapshot, publish_time
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `)
-
-  try {
-    stmt.run([
-      version.project_code,
-      version.version_number,
-      version.version_name,
-      version.is_published,
-      version.project_snapshot,
-      version.steps_snapshot,
-      isPublished ? new Date().toISOString() : null
-    ])
-
-    // 查询刚刚创建的版本
-    const queryStmt = db.prepare(`
-      SELECT * FROM t_project_version
-      WHERE project_code = ? AND version_number = ?
+  if (existingVersion) {
+    // 更新现有版本
+    const stmt = db.prepare(`
+      UPDATE t_project_version
+      SET version_name = ?,
+          project_snapshot = ?,
+          steps_snapshot = ?,
+          create_time = CURRENT_TIMESTAMP
+      WHERE id = ?
     `)
 
-    return queryStmt.get(version.project_code, version.version_number) as ProjectVersion
-  } catch (error) {
-    console.error('保存版本失败:', error)
-    throw error
+    stmt.run([
+      versionName,
+      JSON.stringify(project),
+      JSON.stringify(steps),
+      existingVersion.id
+    ])
+  } else {
+    // 创建新版本
+    const stmt = db.prepare(`
+      INSERT INTO t_project_version (
+        project_code, version_number, version_name,
+        project_snapshot, steps_snapshot
+      ) VALUES (?, ?, ?, ?, ?)
+    `)
+
+    stmt.run([
+      projectCode,
+      versionNumber,
+      versionName,
+      JSON.stringify(project),
+      JSON.stringify(steps)
+    ])
   }
+
+  // 查询当前版本
+  const queryStmt = db.prepare(`
+    SELECT * FROM t_project_version
+    WHERE project_code = ? AND version_number = ?
+  `)
+
+  return queryStmt.get(projectCode, versionNumber) as ProjectVersion
 }
 
 // 获取项目版本
@@ -271,19 +285,6 @@ export function getProjectVersions(projectCode: string) {
   `)
 
   return stmt.all(projectCode) as ProjectVersion[]
-}
-
-// 发布版本
-export function publishProjectVersion(id: number) {
-  const stmt = db.prepare(`
-    UPDATE t_project_version
-    SET is_published = 1, publish_time = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `)
-
-  stmt.run(id)
-
-  return getProjectVersionById(id)
 }
 
 // 创建项目日志

@@ -6,38 +6,39 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card'
 
 interface VersionManagerProps {
   versions: any[]
-  onCreateVersion: (versionNumber: string, versionName: string, isPublished: boolean) => Promise<void>
-  onPublishVersion: (versionId: number) => Promise<void>
+  onCreateVersion: (versionNumber: string, versionName: string) => Promise<void>
+  onLoadVersion: (version: any) => Promise<void>
+  selectedVersion?: any
 }
 
 export const VersionManager: React.FC<VersionManagerProps> = ({
   versions,
   onCreateVersion,
-  onPublishVersion
+  onLoadVersion,
+  selectedVersion
 }) => {
   const [versionNumber, setVersionNumber] = useState('1.0.0')
   const [versionName, setVersionName] = useState('')
-  const [isPublished, setIsPublished] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
   const handleCreateVersion = async () => {
     if (!versionNumber) return
     setIsCreating(true)
     try {
-      await onCreateVersion(versionNumber, versionName, isPublished)
+      await onCreateVersion(versionNumber, versionName)
       setVersionName('')
     } catch (error) {
-      console.error('创建版本失败:', error)
+      console.error('保存版本失败:', error)
     } finally {
       setIsCreating(false)
     }
   }
 
-  const handlePublishVersion = async (versionId: number) => {
+  const handleLoadVersion = async (version: any) => {
     try {
-      await onPublishVersion(versionId)
+      await onLoadVersion(version)
     } catch (error) {
-      console.error('发布版本失败:', error)
+      console.error('加载版本失败:', error)
     }
   }
 
@@ -63,21 +64,12 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
             placeholder="版本名称 (可选)"
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={isPublished}
-              onChange={(e) => setIsPublished(e.target.checked)}
-              className="rounded"
-            />
-            立即发布
-          </label>
           <Button
             onClick={handleCreateVersion}
             disabled={isCreating || !versionNumber}
             size="sm"
           >
-            {isCreating ? '创建中...' : '保存版本'}
+            {isCreating ? '保存中...' : '保存版本'}
           </Button>
         </div>
 
@@ -91,7 +83,11 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
             versions.map((version) => (
               <div
                 key={version.id}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                className={`flex items-center justify-between p-2 rounded-lg ${
+                  selectedVersion?.id === version.id
+                    ? 'bg-indigo-100 border border-indigo-300'
+                    : 'bg-gray-50'
+                }`}
               >
                 <div className="flex flex-col">
                   <span className="font-medium text-sm text-gray-900">
@@ -106,22 +102,14 @@ export const VersionManager: React.FC<VersionManagerProps> = ({
                     {new Date(version.create_time).toLocaleString()}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {version.is_published ? (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                      已发布
-                    </span>
-                  ) : (
-                    <Button
-                      onClick={() => handlePublishVersion(version.id)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs"
-                    >
-                      发布
-                    </Button>
-                  )}
-                </div>
+                <Button
+                  onClick={() => handleLoadVersion(version)}
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                >
+                  加载
+                </Button>
               </div>
             ))
           )}
