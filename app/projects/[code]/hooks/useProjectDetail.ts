@@ -170,7 +170,9 @@ export function useProjectDetail() {
           detail: stepDetail
         } : s
       ))
-      addLog('info', '步骤 ' + stepNum + ' 生成完成')
+      addLog('info', '步骤 ' + stepNum + ' 生成完成', `⏱️ 开始时间：${startTime.toLocaleTimeString()}
+✅ 结束时间：${endTime.toLocaleTimeString()}
+⚡ 耗时：${duration}ms`)
 
     } catch (error) {
       setSteps(prev => prev.map(s =>

@@ -191,39 +191,6 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         </div>
       </div>
 
-      {/* 计时信息 */}
-      {stepDetail.timing && (
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <span>⏱️</span>
-            <span>开始时间：</span>
-            <span className="font-mono text-gray-700">
-              {stepDetail.timing.startTime.toLocaleTimeString()}
-            </span>
-          </div>
-          {stepDetail.timing.endTime && (
-            <>
-              <div className="flex items-center gap-2">
-                <span>✅</span>
-                <span>结束时间：</span>
-                <span className="font-mono text-gray-700">
-                  {stepDetail.timing.endTime.toLocaleTimeString()}
-                </span>
-              </div>
-              {stepDetail.timing.duration && (
-                <div className="flex items-center gap-2">
-                  <span>⚡</span>
-                  耗时：
-                  <span className="font-mono text-indigo-600 font-semibold">
-                    {stepDetail.timing.duration}ms
-                  </span>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
       {/* 内容区域 */}
       <div className="flex-1 min-h-0 animate-fade-in overflow-hidden">
         {viewMode === 'raw' || isJson ? (
