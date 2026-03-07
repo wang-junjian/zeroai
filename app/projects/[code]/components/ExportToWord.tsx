@@ -254,7 +254,29 @@ export const ExportToWord: React.FC<ExportToWordProps> = ({
 
             if (line.trim()) {
               // 处理标题
-              if (line.startsWith('### ')) {
+              if (line.startsWith('##### ')) {
+                children.push(
+                  new Paragraph({
+                    text: line.slice(6),
+                    heading: HeadingLevel.HEADING_5,
+                    spacing: {
+                      before: 100,
+                      after: 50,
+                    },
+                  })
+                )
+              } else if (line.startsWith('#### ')) {
+                children.push(
+                  new Paragraph({
+                    text: line.slice(5),
+                    heading: HeadingLevel.HEADING_4,
+                    spacing: {
+                      before: 150,
+                      after: 75,
+                    },
+                  })
+                )
+              } else if (line.startsWith('### ')) {
                 children.push(
                   new Paragraph({
                     text: line.slice(4),
