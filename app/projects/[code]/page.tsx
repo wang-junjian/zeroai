@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Card, CardBody } from '@/components/ui/card'
 import { useProjectDetail } from './hooks/useProjectDetail'
 import { StepContent } from './components/StepContent'
@@ -33,9 +32,11 @@ export default function ProjectDetail() {
   } = useProjectDetail()
 
   const getDisplayStep = () => {
+    // 如果有选中的步骤，显示选中的步骤
     if (selectedStep) {
       return steps.find(s => s.number === selectedStep)
     }
+    // 否则按优先级显示
     const reviewingStep = steps.find(s => s.status === 'reviewing')
     if (reviewingStep) return reviewingStep
     const generatingStep = steps.find(s => s.status === 'generating')
@@ -110,16 +111,6 @@ export default function ProjectDetail() {
                         </span>
                         {displayStep.name}
                       </h2>
-                      {selectedStep && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedStep(null)}
-                          className="h-8 w-8 p-0"
-                        >
-                          ×
-                        </Button>
-                      )}
                     </div>
                     <div className="flex-1 overflow-y-auto min-h-0">
                       <StepContent
