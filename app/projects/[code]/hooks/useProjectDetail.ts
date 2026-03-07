@@ -41,6 +41,7 @@ export function useProjectDetail() {
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(1)
+  const [versions, setVersions] = useState<any[]>([])
 
   useEffect(() => {
     const name = searchParams.get('name')
@@ -281,6 +282,26 @@ export function useProjectDetail() {
     }
   }, [approveStep, addLog, steps])
 
+  // 创建版本
+  const createVersion = useCallback(async (versionNumber: string, versionName: string, isPublished: boolean = false) => {
+    try {
+      console.log('创建版本功能尚未实现')
+      // 这里会调用 API 创建版本
+    } catch (error) {
+      console.error('创建版本失败:', error)
+    }
+  }, [])
+
+  // 发布版本
+  const publishVersion = useCallback(async (versionId: number) => {
+    try {
+      console.log('发布版本功能尚未实现')
+      // 这里会调用 API 发布版本
+    } catch (error) {
+      console.error('发布版本失败:', error)
+    }
+  }, [])
+
   const startProject = useCallback(async () => {
     if (isRunning) return
     setIsRunning(true)
@@ -331,6 +352,9 @@ export function useProjectDetail() {
     regenerateStep,
     approveStep,
     goToNextStep,
-    startProject
+    startProject,
+    versions,
+    createVersion,
+    publishVersion
   }
 }

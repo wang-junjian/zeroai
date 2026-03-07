@@ -155,6 +155,60 @@ export const initDatabase = () => {
       FOREIGN KEY (room_code) REFERENCES t_game_room(room_code),
       FOREIGN KEY (player_id) REFERENCES t_player_status(player_id)
     );
+
+    CREATE TABLE IF NOT EXISTS t_project (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      requirements TEXT,
+      current_step INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'draft',
+      create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      update_time DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS t_project_step (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_code TEXT NOT NULL,
+      step_number INTEGER NOT NULL,
+      step_name TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      data TEXT,
+      raw_content TEXT,
+      system_prompt TEXT,
+      user_prompt TEXT,
+      input TEXT,
+      output TEXT,
+      raw_response TEXT,
+      timing TEXT,
+      create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(project_code, step_number),
+      FOREIGN KEY (project_code) REFERENCES t_project(code) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS t_project_version (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_code TEXT NOT NULL,
+      version_number TEXT NOT NULL,
+      version_name TEXT,
+      is_published INTEGER DEFAULT 0,
+      project_snapshot TEXT NOT NULL,
+      steps_snapshot TEXT NOT NULL,
+      create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      publish_time DATETIME,
+      FOREIGN KEY (project_code) REFERENCES t_project(code) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS t_project_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_code TEXT NOT NULL,
+      level TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT,
+      create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_code) REFERENCES t_project(code) ON DELETE CASCADE
+    );
   `);
 };
 
