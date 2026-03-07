@@ -22,6 +22,7 @@ export default function ProjectDetail() {
     setLogsExpanded,
     regenerateStep,
     approveStep,
+    goToNextStep,
     startStep,
     startProject
   } = useProjectDetail()
@@ -120,7 +121,7 @@ export default function ProjectDetail() {
                         step={displayStep}
                         onRegenerate={() => regenerateStep(displayStep.number)}
                         onApprove={() => approveStep(displayStep.number)}
-                        onNext={() => startStep(displayStep.number + 1)}
+                        onNext={() => goToNextStep(displayStep.number)}
                         isLast={displayStep.number === 5}
                       />
                     </div>

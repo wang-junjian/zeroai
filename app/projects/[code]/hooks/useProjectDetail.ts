@@ -51,12 +51,13 @@ export function useProjectDetail() {
       setSteps(prev => prev.map(step =>
         step.number === 1 ? {
           ...step,
+          status: 'pending',
           detail: {
             ...step.detail!,
             input: safeDecodeURIComponent(req),
             userPrompt: safeDecodeURIComponent(req)
           },
-          data: '需求分析正在准备中...'
+          data: '点击"生成"开始此步骤'
         } : step
       ))
     }
@@ -234,21 +235,79 @@ export function useProjectDetail() {
     addLog('info', '步骤 ' + stepNum + ' 审核通过！')
   }, [addLog])
 
+  const goToNextStep = useCallback((stepNum: number) => {
+    // 审核当前步骤
+    approveStep(stepNum)
+
+    // 设置下一步骤为待生成状态，让用户可以查看提示和输入
+    if (stepNum < 5) {
+      // 准备输入内容
+      let inputContent = ''
+      if (stepNum === 1) {
+        // 步骤2需要步骤1的rawContent
+        inputContent = steps[0].rawContent || ''
+      } else if (stepNum === 2) {
+        // 步骤3需要步骤1的rawContent
+        inputContent = steps[0].rawContent || ''
+      } else if (stepNum === 3) {
+        // 步骤4需要步骤2的rawContent
+        inputContent = steps[1].rawContent || ''
+      } else if (stepNum === 4) {
+        // 步骤5需要步骤1、2、4的rawContent
+        inputContent = `需求理解：${steps[0].rawContent?.substring(0, 200) || '无'}...\n\n接口设计：${steps[1].rawContent?.substring(0, 200) || '无'}...\n\n业务逻辑：${steps[3].rawContent?.substring(0, 200) || '无'}...`
+      }
+
+      setSteps(prev => prev.map(s =>
+        s.number === stepNum + 1 ? {
+          ...s,
+          status: 'pending',
+          data: '点击"生成"开始此步骤',
+          detail: {
+            stepNumber: stepNum + 1,
+            stepName: stepNames[stepNum],
+            systemPrompt: systemPrompts[stepNum],
+            userPrompt: inputContent,
+            input: inputContent,
+            output: '',
+            rawResponse: null,
+            timing: undefined
+          }
+        } : s
+      ))
+      setSelectedStep(stepNum + 1)
+      addLog('info', '进入步骤 ' + (stepNum + 1) + '：' + stepNames[stepNum])
+    }
+  }, [approveStep, addLog, steps])
+
   const startProject = useCallback(async () => {
     if (isRunning) return
     setIsRunning(true)
     clearLogs()
     setSteps([
-      { number: 1, name: stepNames[0], status: 'pending' },
+      {
+        number: 1,
+        name: stepNames[0],
+        status: 'pending',
+        data: '请输入项目需求描述',
+        detail: {
+          stepNumber: 1,
+          stepName: stepNames[0],
+          systemPrompt: systemPrompts[0],
+          userPrompt: '',
+          input: '',
+          output: '',
+          rawResponse: null,
+          timing: undefined
+        }
+      },
       { number: 2, name: stepNames[1], status: 'pending' },
       { number: 3, name: stepNames[2], status: 'pending' },
       { number: 4, name: stepNames[3], status: 'pending' },
       { number: 5, name: stepNames[4], status: 'pending' }
     ])
-    addLog('info', '开始工作流...')
-    await startStep(1)
+    addLog('info', '工作流准备完成！请查看第一步的系统提示，输入项目需求后点击"生成"按钮。')
     setIsRunning(false)
-  }, [isRunning, clearLogs, startStep, addLog])
+  }, [isRunning, clearLogs, addLog])
 
   return {
     projectName,
@@ -269,6 +328,7 @@ export function useProjectDetail() {
     startStep,
     regenerateStep,
     approveStep,
+    goToNextStep,
     startProject
   }
 }
