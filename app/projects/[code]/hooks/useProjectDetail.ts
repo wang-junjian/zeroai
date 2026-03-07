@@ -40,7 +40,7 @@ export function useProjectDetail() {
   ])
   const [currentOutput, setCurrentOutput] = useState('')
   const [showCurrentOutput, setShowCurrentOutput] = useState(false)
-  const [selectedStep, setSelectedStep] = useState<number | null>(1)
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
 
   useEffect(() => {
     const name = searchParams.get('name')
