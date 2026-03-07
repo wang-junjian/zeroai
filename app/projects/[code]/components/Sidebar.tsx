@@ -80,8 +80,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onStepClick,
   isRunning,
 }) => {
+  // 所有步骤都可以查看
   const hasStepContent = (status: StepStatus) => {
-    return status !== 'pending'
+    return true
   }
 
   return (
@@ -99,16 +100,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const hasContent = hasStepContent(step.status)
           const colors = getStatusColor(step.status)
 
+          // 如果有 detail，总是可以点击
+          const isClickable = hasContent && step.detail
+
           return (
             <div key={step.number}>
               <button
-                onClick={() => hasContent && onStepClick(step.number)}
-                disabled={!hasContent}
+                onClick={() => isClickable && onStepClick(step.number)}
+                disabled={!isClickable}
                 className={`
                   w-full flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 text-left
                   ${isSelected
                     ? `${colors.bg} ${colors.border} shadow-sm`
-                    : hasContent
+                    : isClickable
                       ? 'hover:bg-gray-50 border-transparent hover:border-gray-200'
                       : 'border-transparent opacity-50 cursor-not-allowed'
                   }
@@ -125,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex-1 min-w-0">
                   <p className={`
                     text-sm font-medium truncate
-                    ${isSelected ? colors.text : hasContent ? 'text-gray-700' : 'text-gray-400'}
+                    ${isSelected ? colors.text : isClickable ? 'text-gray-700' : 'text-gray-400'}
                   `}>
                     {step.name}
                   </p>
@@ -133,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     text-xs mt-0.5
                     ${step.status === 'generating' ? 'text-indigo-500' : 'text-gray-400'}
                   `}>
-                    {step.status === 'pending' && '等待中'}
+                    {step.status === 'pending' && '待生成'}
                     {step.status === 'generating' && '生成中...'}
                     {step.status === 'reviewing' && '待审核'}
                     {step.status === 'approved' && '已完成'}

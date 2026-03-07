@@ -97,6 +97,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 
   const isJson = activeTab === 'response'
   const content = getTabContent()
+  const hasOutput = !!stepDetail.output
 
   return (
     <div className="flex flex-col h-full">
@@ -161,7 +162,8 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
               🔄 生成
             </Button>
           )}
-          {onApprove && !isLast && onNext && (
+          {/* 只有在有输出内容时才显示下一步按钮（待审核状态） */}
+          {onApprove && !isLast && onNext && hasOutput && (
             <Button
               onClick={() => {
                 onApprove()
@@ -172,7 +174,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
               ➡️ 下一步
             </Button>
           )}
-          {onApprove && isLast && (
+          {onApprove && isLast && hasOutput && (
             <Button
               onClick={onApprove}
               size="sm"
@@ -206,7 +208,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
               {stepDetail.timing.duration && (
                 <div className="flex items-center gap-2">
                   <span>⚡</span>
-                  <span>耗时：</span>
+                  耗时：
                   <span className="font-mono text-indigo-600 font-semibold">
                     {stepDetail.timing.duration}ms
                   </span>
