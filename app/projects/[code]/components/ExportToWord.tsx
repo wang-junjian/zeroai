@@ -491,7 +491,12 @@ export const ExportToWord: React.FC<ExportToWordProps> = ({
   }
 
   return (
-    <Button onClick={handleExport} size="sm">
+    <Button
+      onClick={handleExport}
+      size="sm"
+      variant="outline"
+      leftIcon={<span className="text-sm">📄</span>}
+    >
       导出 Word
     </Button>
   )
