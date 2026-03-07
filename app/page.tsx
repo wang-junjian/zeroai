@@ -101,7 +101,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-xl">🚀</span>
             </div>
-            <h1 className="text-3xl font-bold text-gradient">zeroai</h1>
+            <h1 className="text-3xl font-bold text-gradient">ZeroAI</h1>
           </div>
           <Button
             onClick={() => setShowNewProject(true)}
@@ -123,7 +123,7 @@ export default function Home() {
               <span className="text-6xl">🎮</span>
             </div>
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              欢迎使用 zeroai！
+              欢迎使用 ZeroAI！
             </h2>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-10 leading-relaxed">
               一个通用的 AI 开发助手，能够按照五步流程开发任意软件应用。
