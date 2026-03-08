@@ -99,7 +99,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         ? JSON.stringify(stepDetail.rawResponse, null, 2)
         : ''
     })
-  }, [stepDetail.stepNumber, defaultActiveTab])
+  }, [stepDetail.stepNumber, defaultActiveTab, stepDetail.systemPrompt, stepDetail.input, stepDetail.output, stepDetail.rawResponse])
 
   const getTabContent = () => {
     return editableContent[activeTab]
