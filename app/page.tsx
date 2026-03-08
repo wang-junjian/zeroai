@@ -120,19 +120,29 @@ export default function Home() {
         {projects.length === 0 && (
           <div className="text-center py-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              欢迎使用 ZeroAI！
+              <span className="bg-purple-300 text-purple-700 px-2 py-1 rounded-md font-bold mr-2">需求即代码</span> 
+              ZeroAI 让开发触手可及。
             </h2>
             {/* 流程图：请将图片文件放在 public/software-development-flow.png */}
             <div className="max-w-4xl mx-auto mb-8">
               <picture>
                 <source srcSet="/software-development-flow.jpeg" type="image/jpeg" />
                 <img
-                  src="/software-development-flow.jpeg"
+                  src="/software-development-flow.svg"
                   alt="软件开发流程图"
                   className="w-full h-auto rounded-lg shadow-lg border border-gray-100"
                 />
               </picture>
-              <p className="text-sm text-gray-500 mt-3">软件开发五步流程：需求理解 → 接口设计 → 数据库设计 → 业务逻辑 → 代码生成</p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {['需求理解', '接口设计', '数据库设计', '业务逻辑', '代码生成'].map((step, index) => (
+                  <div key={step} className="flex items-center">
+                    <span className="text-xs font-medium px-3 py-1 bg-purple-50 text-purple-600 rounded-full border border-purple-100 shadow-sm">
+                      {step}
+                    </span>
+                    {index < 4 && <span className="mx-2 text-gray-300">→</span>}
+                  </div>
+                ))}
+              </div>
             </div>
             <Button
               onClick={() => setShowNewProject(true)}
