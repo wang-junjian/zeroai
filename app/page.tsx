@@ -119,31 +119,20 @@ export default function Home() {
         {/* Welcome Section */}
         {projects.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-32 h-32 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
-              <span className="text-6xl">🎮</span>
-            </div>
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
               欢迎使用 ZeroAI！
             </h2>
-            <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-10 leading-relaxed">
-              一个通用的 AI 开发助手，能够按照五步流程开发任意软件应用。
-              从需求理解到代码生成，让 AI 帮你开发软件！
-            </p>
-            <div className="flex items-center justify-center gap-8 mb-8 text-gray-500">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                <span>需求分析</span>
-              </div>
-              <span className="text-gray-300">→</span>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
-                <span>接口设计</span>
-              </div>
-              <span className="text-gray-300">→</span>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
-                <span>代码生成</span>
-              </div>
+            {/* 流程图：请将图片文件放在 public/software-development-flow.png */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <picture>
+                <source srcSet="/software-development-flow.jpeg" type="image/jpeg" />
+                <img
+                  src="/software-development-flow.jpeg"
+                  alt="软件开发流程图"
+                  className="w-full h-auto rounded-lg shadow-lg border border-gray-100"
+                />
+              </picture>
+              <p className="text-sm text-gray-500 mt-3">软件开发五步流程：需求理解 → 接口设计 → 数据库设计 → 业务逻辑 → 代码生成</p>
             </div>
             <Button
               onClick={() => setShowNewProject(true)}
@@ -151,7 +140,7 @@ export default function Home() {
               className="shadow-lg hover:shadow-xl"
             >
               <span>🚀</span>
-              开始你的第一个项目
+              开始您的第一个项目
             </Button>
           </div>
         )}
