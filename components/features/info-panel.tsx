@@ -73,6 +73,8 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab)
   const [viewMode, setViewMode] = useState<ViewMode>('rendered')
+  // 记录上一次的步骤编号，用于判断是否切换了步骤
+  const [lastStepNumber, setLastStepNumber] = useState(stepDetail.stepNumber)
   // 使用本地状态来管理编辑的内容
   const [editableContent, setEditableContent] = useState<{ [key in TabType]: string }>({
     system: stepDetail.systemPrompt || '',
@@ -85,21 +87,25 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 
   // 当步骤改变时，更新状态
   useEffect(() => {
-    // 如果有输出内容，切换到输出标签页
-    if (stepDetail.output && defaultActiveTab === 'output') {
-      setActiveTab('output')
-    } else {
-      setActiveTab(defaultActiveTab)
+    // 只有当步骤编号改变时才更新状态，避免编辑内容时触发
+    if (stepDetail.stepNumber !== lastStepNumber) {
+      // 如果有输出内容，切换到输出标签页
+      if (stepDetail.output && defaultActiveTab === 'output') {
+        setActiveTab('output')
+      } else {
+        setActiveTab(defaultActiveTab)
+      }
+      setEditableContent({
+        system: stepDetail.systemPrompt || '',
+        input: stepDetail.input || '',
+        output: stepDetail.output || '',
+        response: stepDetail.rawResponse
+          ? JSON.stringify(stepDetail.rawResponse, null, 2)
+          : ''
+      })
+      setLastStepNumber(stepDetail.stepNumber)
     }
-    setEditableContent({
-      system: stepDetail.systemPrompt || '',
-      input: stepDetail.input || '',
-      output: stepDetail.output || '',
-      response: stepDetail.rawResponse
-        ? JSON.stringify(stepDetail.rawResponse, null, 2)
-        : ''
-    })
-  }, [stepDetail.stepNumber, defaultActiveTab, stepDetail.systemPrompt, stepDetail.input, stepDetail.output, stepDetail.rawResponse])
+  }, [stepDetail.stepNumber, lastStepNumber, defaultActiveTab])
 
   const getTabContent = () => {
     return editableContent[activeTab]
@@ -202,7 +208,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
           <textarea
             value={content}
             onChange={(e) => {
-              // 首先更新本地状态，确保 UI 能立即响应
+              // 只更新本地状态，避免编辑时触发不必要的重新渲染
               setEditableContent(prev => ({
                 ...prev,
                 [activeTab]: e.target.value
