@@ -11,5 +11,3 @@
    - 页面组件
 
 请使用 Next.js + TypeScript + Tailwind CSS 技术栈，代码应该是完整的、可运行的。
-
-请使用 ```typescript、```sql、```json 等代码块标记代码。
