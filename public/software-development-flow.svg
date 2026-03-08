@@ -1,0 +1,147 @@
+<svg viewBox="0 0 1000 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="100%" stop-color="#EDF4FC" />
+        </linearGradient>
+
+        <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#F2F8FF" />
+            <stop offset="100%" stop-color="#D9EAFB" />
+        </linearGradient>
+        
+        <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFAE33" />
+            <stop offset="100%" stop-color="#FF8C00" />
+        </linearGradient>
+
+        <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+            <feDropShadow dx="2" dy="5" stdDeviation="4" flood-color="#8DA7C9" flood-opacity="0.35" />
+        </filter>
+        <filter id="shadowOrange" x="-10%" y="-10%" width="130%" height="130%">
+            <feDropShadow dx="3" dy="6" stdDeviation="5" flood-color="#D67B00" flood-opacity="0.4" />
+        </filter>
+
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 Z" fill="#3B7BC6" />
+        </marker>
+    </defs>
+
+    <rect width="100%" height="100%" fill="url(#bgGrad)" />
+
+    <g fill="none" stroke="#D1E4FA" stroke-width="2">
+        <path d="M 40 60 L 100 60 L 140 100" />
+        <circle cx="40" cy="60" r="3" fill="#A5C8ED" />
+        <circle cx="100" cy="60" r="3" fill="#A5C8ED" />
+        <circle cx="140" cy="100" r="3" fill="#A5C8ED" />
+        <circle cx="20" cy="120" r="2" fill="#A5C8ED" />
+        <circle cx="110" cy="30" r="2" fill="#A5C8ED" />
+        
+        <path d="M 40 540 L 100 540 L 140 500" />
+        <circle cx="40" cy="540" r="3" fill="#A5C8ED" />
+        
+        <path d="M 960 60 L 900 60 L 860 100" />
+        <circle cx="960" cy="60" r="3" fill="#A5C8ED" />
+        
+        <path d="M 960 540 L 900 540 L 860 500" />
+        <circle cx="960" cy="540" r="3" fill="#A5C8ED" />
+        <circle cx="850" cy="550" r="2" fill="#A5C8ED" />
+    </g>
+
+    <g fill="none" stroke="#3B7BC6" stroke-width="3.5" marker-end="url(#arrow)" stroke-linejoin="round">
+        <path d="M 220 300 L 260 300" marker-end="none" />
+        
+        <path d="M 260 300 L 260 190 Q 260 180 270 180 L 291 180" />
+        
+        <path d="M 260 300 L 260 410 Q 260 420 270 420 L 291 420" />
+        
+        <path d="M 370 220 L 370 371" />
+        
+        <path d="M 440 180 L 470 180 Q 480 180 480 190 L 480 270 Q 480 280 490 280 L 511 280" />
+        
+        <path d="M 440 420 L 470 420 Q 480 420 480 410 L 480 330 Q 480 320 490 320 L 511 320" />
+        
+        <path d="M 660 300 L 731 300" />
+        
+        <path d="M 260 180 L 260 90 Q 260 80 270 80 L 820 80 Q 830 80 830 90 L 830 231" />
+        
+        <path d="M 370 460 L 370 490 Q 370 500 380 500 L 780 500 Q 790 500 790 490 L 790 369" />
+        
+        <path d="M 870 360 L 870 540 Q 870 550 860 550 L 160 550 Q 150 550 150 540 L 150 349" />
+    </g>
+
+    <g filter="url(#shadow)">
+        <rect x="80" y="260" width="140" height="80" rx="12" fill="url(#nodeGrad)" stroke="#5A94D6" stroke-width="2.5" />
+        <rect x="300" y="140" width="140" height="80" rx="12" fill="url(#nodeGrad)" stroke="#5A94D6" stroke-width="2.5" />
+        <rect x="300" y="380" width="140" height="80" rx="12" fill="url(#nodeGrad)" stroke="#5A94D6" stroke-width="2.5" />
+        <rect x="520" y="260" width="140" height="80" rx="12" fill="url(#nodeGrad)" stroke="#5A94D6" stroke-width="2.5" />
+    </g>
+    
+    <rect x="740" y="240" width="180" height="120" rx="16" fill="url(#orangeGrad)" stroke="#1A1A1A" stroke-width="4" filter="url(#shadowOrange)" />
+
+    <g font-family="system-ui, -apple-system, sans-serif" text-anchor="middle">
+        <text x="500" y="45" font-size="34" font-weight="900" fill="#1A2B3C" letter-spacing="2">软件开发流程图</text>
+        
+        <g font-size="20" font-weight="bold" fill="#1A2B3C">
+            <text x="150" y="315">需求理解</text>
+            <text x="370" y="195">接口设计</text>
+            <text x="370" y="435">数据库设计</text>
+            <text x="590" y="315">业务逻辑</text>
+        </g>
+        
+        <text x="830" y="315" font-size="26" font-weight="900" fill="#1A1A1A" letter-spacing="1">代码生成</text>
+    </g>
+
+    <g>
+        <g transform="translate(150, 255)">
+            <rect x="-16" y="-22" width="22" height="28" rx="2" fill="#FFFFFF" stroke="#3B7BC6" stroke-width="2.5"/>
+            <line x1="-10" y1="-12" x2="0" y2="-12" stroke="#3B7BC6" stroke-width="2" stroke-linecap="round"/>
+            <line x1="-10" y1="-5" x2="0" y2="-5" stroke="#3B7BC6" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="-18" cy="2" r="11" fill="#D9EAFB" stroke="#1A2B3C" stroke-width="2.5"/>
+            <line x1="-10" y1="10" x2="-2" y2="18" stroke="#E65A22" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+
+        <g transform="translate(370, 135)">
+            <circle cx="-18" cy="-5" r="14" fill="none" stroke="#3B7BC6" stroke-width="4" stroke-dasharray="4, 5"/>
+            <circle cx="-18" cy="-5" r="10" fill="#FFFFFF" stroke="#3B7BC6" stroke-width="2"/>
+            <circle cx="-18" cy="-5" r="3" fill="#E65A22"/>
+            <circle cx="12" cy="-15" r="4" fill="#3B7BC6"/>
+            <circle cx="22" cy="0" r="4" fill="#F39C12"/>
+            <circle cx="8" cy="10" r="4" fill="#1A2B3C"/>
+            <path d="M -5 -5 L 12 -15 M -5 -5 L 22 0 M -5 -5 L 8 10" fill="none" stroke="#1A2B3C" stroke-width="1.5"/>
+        </g>
+
+        <g transform="translate(370, 375)">
+            <rect x="-20" y="-18" width="40" height="11" rx="3" fill="#3B7BC6" stroke="#1A2B3C" stroke-width="1.5"/>
+            <rect x="-20" y="-4" width="40" height="11" rx="3" fill="#3B7BC6" stroke="#1A2B3C" stroke-width="1.5"/>
+            <rect x="-20" y="10" width="40" height="11" rx="3" fill="#3B7BC6" stroke="#1A2B3C" stroke-width="1.5"/>
+            <circle cx="-10" cy="-12.5" r="2" fill="#2ECC71"/>
+            <circle cx="-2" cy="-12.5" r="2" fill="#2ECC71"/>
+            <circle cx="-10" cy="1.5" r="2" fill="#2ECC71"/>
+            <circle cx="-2" cy="1.5" r="2" fill="#2ECC71"/>
+            <circle cx="-10" cy="15.5" r="2" fill="#2ECC71"/>
+            <circle cx="-2" cy="15.5" r="2" fill="#2ECC71"/>
+        </g>
+
+        <g transform="translate(590, 255)">
+            <circle cx="15" cy="-12" r="8" fill="none" stroke="#E65A22" stroke-width="3" stroke-dasharray="3, 3"/>
+            <circle cx="15" cy="-12" r="4" fill="#FFFFFF" stroke="#E65A22" stroke-width="1.5"/>
+            <rect x="-25" y="-18" width="16" height="10" rx="2" fill="#3B7BC6"/>
+            <polygon points="-17,2 -7,9 -17,16 -27,9" fill="#F39C12"/>
+            <rect x="-5" y="4" width="16" height="10" rx="2" fill="#1A2B3C"/>
+            <path d="M -17 -8 L -17 2 M -7 9 L -5 9" fill="none" stroke="#1A2B3C" stroke-width="1.5"/>
+        </g>
+
+        <g transform="translate(830, 235)">
+            <text x="-40" y="-5" font-family="monospace" font-size="42" font-weight="900" fill="#3B7BC6" stroke="#FFFFFF" stroke-width="2" text-anchor="middle">{ }</text>
+            <g transform="translate(25, -20) rotate(45)">
+                <path d="M 0 -18 Q 12 0 6 15 L -6 15 Q -12 0 0 -18 Z" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="2.5" stroke-linejoin="round"/>
+                <polygon points="-6,5 -14,15 -6,12" fill="#3B7BC6" stroke="#1A1A1A" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="6,5 14,15 6,12" fill="#3B7BC6" stroke="#1A1A1A" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="0" cy="0" r="3.5" fill="#3B7BC6" stroke="#1A1A1A" stroke-width="1.5"/>
+                <path d="M -4 15 L 0 24 L 4 15 Z" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M -2 15 L 0 20 L 2 15 Z" fill="#FF5722"/>
+            </g>
+        </g>
+    </g>
+</svg>
