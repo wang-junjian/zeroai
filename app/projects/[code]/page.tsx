@@ -33,8 +33,11 @@ export default function ProjectDetail() {
     selectedVersion,
     loadVersion
   ,
-    updateStepDetail
+    updateStepDetail,
+    techStack,
+    setTechStack
   } = useProjectDetail()
+
 
   const getDisplayStep = () => {
     // 如果有选中的步骤，显示选中的步骤
@@ -62,9 +65,30 @@ export default function ProjectDetail() {
             <span>←</span>
             <span className="font-medium">返回</span>
           </Link>
-          <h1 className="text-lg font-bold text-gray-900 truncate max-w-md">
-            {projectName}
-          </h1>
+          <div className="flex flex-col max-w-md">
+            <h1 className="text-lg font-bold text-gray-900 truncate">
+              {projectName}
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              {techStack && techStack.length > 0 ? techStack.map(t => (
+                <span key={t} className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                  {t}
+                </span>
+              )) : (
+                <span className="text-xs text-gray-400">未指定技术栈</span>
+              )}
+              <button
+                onClick={() => {
+                  const input = prompt('编辑技术栈（用逗号分隔）', (techStack || []).join(','))
+                  if (input !== null) {
+                    const arr = input.split(',').map(s => s.trim()).filter(Boolean)
+                    setTechStack(arr)
+                  }
+                }}
+                className="ml-2 text-xs text-indigo-600"
+              >编辑</button>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <ExportToWord
               projectName={projectName}

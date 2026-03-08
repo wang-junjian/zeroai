@@ -7,12 +7,13 @@ interface GenerateCodeRequest {
   interfaces: string
   businessLogic: string
   systemPrompt?: string
+  techStack?: string[]
 }
 
 export const POST = createApiHandler(async (req: NextRequest) => {
-  const { requirements, interfaces, businessLogic, systemPrompt } = await validateRequest<GenerateCodeRequest>(
+  const { requirements, interfaces, businessLogic, systemPrompt, techStack } = await validateRequest<GenerateCodeRequest>(
     req,
     ['requirements', 'interfaces', 'businessLogic']
   )
-  return await generateCode(requirements, interfaces, businessLogic, systemPrompt)
+  return await generateCode(requirements, interfaces, businessLogic, systemPrompt, techStack)
 })

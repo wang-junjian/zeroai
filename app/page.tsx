@@ -9,6 +9,7 @@ interface Project {
   code: string
   name: string
   requirements: string
+  techStack?: string[]
   createdAt: string
   status: 'pending' | 'running' | 'completed' | 'failed'
 }
@@ -19,6 +20,8 @@ export default function Home() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [projectName, setProjectName] = useState('')
   const [requirements, setRequirements] = useState('')
+  const [techInput, setTechInput] = useState('')
+  const [selectedTech, setSelectedTech] = useState<string[]>([])
 
   // 从 localStorage 加载项目
   useEffect(() => {
@@ -47,6 +50,7 @@ export default function Home() {
       code: projectCode,
       name: projectName,
       requirements: requirements,
+      techStack: selectedTech,
       createdAt: new Date().toISOString(),
       status: 'pending'
     }
@@ -60,6 +64,7 @@ export default function Home() {
     const params = new URLSearchParams()
     params.set('name', projectName)
     params.set('req', requirements)
+    if (selectedTech.length > 0) params.set('tech', selectedTech.join(','))
     router.push('/projects/' + projectCode + '?' + params.toString())
   }
 
@@ -104,7 +109,7 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-gradient">ZeroAI</h1>
           </div>
           <Button
-            onClick={() => setShowNewProject(true)}
+            onClick={() => { setSelectedTech([]); setTechInput(''); setShowNewProject(true) }}
             size="lg"
             className="shadow-lg hover:shadow-xl"
           >
@@ -145,7 +150,7 @@ export default function Home() {
               </div>
             </div>
             <Button
-              onClick={() => setShowNewProject(true)}
+              onClick={() => { setSelectedTech([]); setTechInput(''); setShowNewProject(true) }}
               size="lg"
               className="shadow-lg hover:shadow-xl"
             >
@@ -282,9 +287,44 @@ export default function Home() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     技术栈（可选）
                   </label>
-                  <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-4">
-                    默认使用：Next.js + TypeScript + Tailwind CSS
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    {['Next.js','React','TypeScript','Node.js','Express','Prisma','PostgreSQL','Tailwind','Vite'].map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTech(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])
+                        }}
+                        className={`px-3 py-1 rounded-full text-sm border ${selectedTech.includes(t) ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700'}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
                   </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={techInput}
+                      onChange={(e) => setTechInput(e.target.value)}
+                      placeholder="自定义技术（用逗号分隔，例如：Redis, Docker）"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-xl"
+                    />
+                    <Button type="button" variant="outline" onClick={() => {
+                      const parts = techInput.split(',').map(s => s.trim()).filter(Boolean)
+                      setSelectedTech(prev => Array.from(new Set([...prev, ...parts])))
+                      setTechInput('')
+                    }}>添加</Button>
+                  </div>
+                  {selectedTech.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedTech.map(t => (
+                        <div key={t} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+                          <span>{t}</span>
+                          <button onClick={() => setSelectedTech(prev => prev.filter(x => x !== t))} className="text-gray-500">×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Buttons */}
