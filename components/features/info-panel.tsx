@@ -83,7 +83,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
       : ''
   })
 
-  // 当步骤改变或输出内容出现时，更新状态
+  // 当步骤改变时，更新状态
   useEffect(() => {
     // 如果有输出内容，切换到输出标签页
     if (stepDetail.output && defaultActiveTab === 'output') {
@@ -99,7 +99,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         ? JSON.stringify(stepDetail.rawResponse, null, 2)
         : ''
     })
-  }, [stepDetail.stepNumber, defaultActiveTab, stepDetail.systemPrompt, stepDetail.input, stepDetail.output, stepDetail.rawResponse])
+  }, [stepDetail.stepNumber, defaultActiveTab])
 
   const getTabContent = () => {
     return editableContent[activeTab]

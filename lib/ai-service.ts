@@ -25,48 +25,48 @@ export const generateResponse = async (systemPrompt: string, userPrompt: string)
   }
 };
 
-export const analyzeRequirements = async (description: string) => {
-  const systemPrompt = SYSTEM_PROMPTS[0];
+export const analyzeRequirements = async (description: string, systemPrompt?: string) => {
+  const prompt = systemPrompt || SYSTEM_PROMPTS[0];
 
   const userPrompt = `请分析以下软件项目描述的需求：
 
 ${description}`;
 
-  return await generateResponse(systemPrompt, userPrompt);
+  return await generateResponse(prompt, userPrompt);
 };
 
-export const designInterfaces = async (requirements: string) => {
-  const systemPrompt = SYSTEM_PROMPTS[1];
+export const designInterfaces = async (requirements: string, systemPrompt?: string) => {
+  const prompt = systemPrompt || SYSTEM_PROMPTS[1];
 
   const userPrompt = `请根据以下需求分析结果设计软件系统的接口：
 
 ${requirements}`;
 
-  return await generateResponse(systemPrompt, userPrompt);
+  return await generateResponse(prompt, userPrompt);
 };
 
-export const designDatabase = async (requirements: string) => {
-  const systemPrompt = SYSTEM_PROMPTS[2];
+export const designDatabase = async (requirements: string, systemPrompt?: string) => {
+  const prompt = systemPrompt || SYSTEM_PROMPTS[2];
 
   const userPrompt = `请根据以下需求分析结果设计软件系统的数据库结构：
 
 ${requirements}`;
 
-  return await generateResponse(systemPrompt, userPrompt);
+  return await generateResponse(prompt, userPrompt);
 };
 
-export const designBusinessLogic = async (interfaces: string) => {
-  const systemPrompt = SYSTEM_PROMPTS[3];
+export const designBusinessLogic = async (interfaces: string, systemPrompt?: string) => {
+  const prompt = systemPrompt || SYSTEM_PROMPTS[3];
 
   const userPrompt = `请根据以下接口设计结果设计软件系统的处理逻辑：
 
 ${interfaces}`;
 
-  return await generateResponse(systemPrompt, userPrompt);
+  return await generateResponse(prompt, userPrompt);
 };
 
-export const generateCode = async (requirements: string, interfaces: string, businessLogic: string) => {
-  const systemPrompt = SYSTEM_PROMPTS[4];
+export const generateCode = async (requirements: string, interfaces: string, businessLogic: string, systemPrompt?: string) => {
+  const prompt = systemPrompt || SYSTEM_PROMPTS[4];
 
   const userPrompt = `请根据以下需求分析结果、接口设计结果和处理逻辑设计结果生成软件源代码：
 
@@ -79,5 +79,5 @@ ${interfaces}
 处理逻辑设计结果：
 ${businessLogic}`;
 
-  return await generateResponse(systemPrompt, userPrompt);
+  return await generateResponse(prompt, userPrompt);
 };

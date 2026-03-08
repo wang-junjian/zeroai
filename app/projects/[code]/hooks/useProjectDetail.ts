@@ -223,35 +223,53 @@ export function useProjectDetail() {
       let body: any = {}
       let inputDesc = ''
 
+      const systemPrompt = step.detail?.systemPrompt || systemPrompts[stepNum - 1]
+
       if (stepNum === 1) {
         endpoint = apiEndpoints[0]
-        body = { description: requirements }
+        inputContent = step.detail?.input || requirements
+        body = {
+          description: inputContent,
+          systemPrompt: systemPrompt
+        }
         inputDesc = '用户需求描述'
-        inputContent = requirements
       } else if (stepNum === 2) {
         endpoint = apiEndpoints[1]
-        body = { requirements: steps[0].rawContent }
+        inputContent = step.detail?.input || steps[0].rawContent || ''
+        body = {
+          requirements: inputContent,
+          systemPrompt: systemPrompt
+        }
         inputDesc = '需求理解结果'
-        inputContent = steps[0].rawContent || '无'
       } else if (stepNum === 3) {
         endpoint = apiEndpoints[2]
-        body = { requirements: steps[0].rawContent }
+        inputContent = step.detail?.input || steps[0].rawContent || ''
+        body = {
+          requirements: inputContent,
+          systemPrompt: systemPrompt
+        }
         inputDesc = '需求理解结果'
-        inputContent = steps[0].rawContent || '无'
       } else if (stepNum === 4) {
         endpoint = apiEndpoints[3]
-        body = { interfaces: steps[1].rawContent }
+        inputContent = step.detail?.input || steps[1].rawContent || ''
+        body = {
+          interfaces: inputContent,
+          systemPrompt: systemPrompt
+        }
         inputDesc = '接口设计结果'
-        inputContent = steps[1].rawContent || '无'
       } else if (stepNum === 5) {
         endpoint = apiEndpoints[4]
+        const reqContent = step.detail?.input || steps[0].rawContent || ''
+        const intContent = steps[1].rawContent || ''
+        const blContent = steps[3].rawContent || ''
+        inputContent = `需求理解：${reqContent?.substring(0, 200) || '无'}...\n\n接口设计：${intContent?.substring(0, 200) || '无'}...\n\n业务逻辑：${blContent?.substring(0, 200) || '无'}...`
         body = {
-          requirements: steps[0].rawContent,
-          interfaces: steps[1].rawContent,
-          businessLogic: steps[3].rawContent
+          requirements: reqContent,
+          interfaces: intContent,
+          businessLogic: blContent,
+          systemPrompt: systemPrompt
         }
         inputDesc = '需求理解、接口设计、业务逻辑设计结果'
-        inputContent = `需求理解：${steps[0].rawContent?.substring(0, 200) || '无'}...\n\n接口设计：${steps[1].rawContent?.substring(0, 200) || '无'}...\n\n业务逻辑：${steps[3].rawContent?.substring(0, 200) || '无'}...`
       }
 
       addLog('info', `步骤 ${stepNum} (${stepNames[stepNum - 1]}) - 输入：${inputDesc}`,
@@ -287,7 +305,7 @@ export function useProjectDetail() {
       const stepDetail = {
         stepNumber: stepNum,
         stepName: stepNames[stepNum - 1],
-        systemPrompt: systemPrompts[stepNum - 1],
+        systemPrompt: systemPrompt,
         userPrompt: inputContent,
         input: inputContent,
         output: result.data,
@@ -337,7 +355,7 @@ export function useProjectDetail() {
       const stepDetail = {
         stepNumber: stepNum,
         stepName: stepNames[stepNum - 1],
-        systemPrompt: systemPrompts[stepNum - 1],
+        systemPrompt: step.detail?.systemPrompt || systemPrompts[stepNum - 1],
         userPrompt: '',
         input: '',
         output: fallbackContent,
