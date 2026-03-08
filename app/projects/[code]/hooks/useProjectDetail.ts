@@ -15,6 +15,7 @@ export function useProjectDetail() {
 
   const [projectName, setProjectName] = useState('项目')
   const [requirements, setRequirements] = useState('')
+  const [techStack, setTechStack] = useState<string[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [currentStep, setCurrentStep] = useState(-1)
   const [steps, setSteps] = useState<Step[]>([
@@ -61,6 +62,25 @@ export function useProjectDetail() {
           if (result.project) {
             setProjectName(result.project.name)
             setRequirements(result.project.requirements)
+            try {
+              if (result.project.tech_stack) {
+                // 支持 JSON 存储或逗号分隔存储
+                const raw = result.project.tech_stack
+                if (typeof raw === 'string') {
+                  try {
+                    const parsed = JSON.parse(raw)
+                    if (Array.isArray(parsed)) setTechStack(parsed)
+                    else setTechStack(raw.split(',').map((s: string) => s.trim()).filter(Boolean))
+                  } catch (e) {
+                    setTechStack(raw.split(',').map((s: string) => s.trim()).filter(Boolean))
+                  }
+                } else if (Array.isArray(raw)) {
+                  setTechStack(raw)
+                }
+              }
+            } catch (e) {
+              // ignore
+            }
             setCurrentStep(result.project.current_step)
           }
 
@@ -172,6 +192,7 @@ export function useProjectDetail() {
             project: {
               name: projectName,
               requirements,
+              tech_stack: techStack,
               current_step: currentStep,
               status: 'active'
             },
@@ -186,7 +207,7 @@ export function useProjectDetail() {
     // 防抖：延迟 1 秒保存
     const timeoutId = setTimeout(saveProjectData, 1000)
     return () => clearTimeout(timeoutId)
-  }, [steps, projectName, requirements, currentStep, params.code, isDataLoaded])
+  }, [steps, projectName, requirements, currentStep, params.code, isDataLoaded, techStack])
 
   useEffect(() => {
     const name = searchParams.get('name')
@@ -207,6 +228,10 @@ export function useProjectDetail() {
           data: '点击"生成"开始此步骤'
         } : step
       ))
+    }
+    const tech = searchParams.get('tech')
+    if (tech) {
+      setTechStack(tech.split(',').map(s => s.trim()).filter(Boolean))
     }
   }, [searchParams])
 
@@ -243,7 +268,8 @@ export function useProjectDetail() {
         inputContent = step.detail?.input || requirements
         body = {
           description: inputContent,
-          systemPrompt: systemPrompt
+          systemPrompt: systemPrompt,
+          techStack: techStack
         }
         inputDesc = '用户需求描述'
       } else if (stepNum === 2) {
@@ -251,7 +277,8 @@ export function useProjectDetail() {
         inputContent = step.detail?.input || steps[0].rawContent || ''
         body = {
           requirements: inputContent,
-          systemPrompt: systemPrompt
+          systemPrompt: systemPrompt,
+          techStack: techStack
         }
         inputDesc = '需求理解结果'
       } else if (stepNum === 3) {
@@ -261,7 +288,8 @@ export function useProjectDetail() {
         inputContent = `需求理解结果：\n${reqContent}\n\n接口设计参考：\n${intContent}`
         body = {
           requirements: inputContent,
-          systemPrompt: systemPrompt
+          systemPrompt: systemPrompt,
+          techStack: techStack
         }
         inputDesc = '需求理解结果 + 接口设计'
       } else if (stepNum === 4) {
@@ -271,7 +299,8 @@ export function useProjectDetail() {
         inputContent = `接口设计结果：\n${intContent}\n\n数据库设计参考：\n${dbContent}`
         body = {
           interfaces: inputContent,
-          systemPrompt: systemPrompt
+          systemPrompt: systemPrompt,
+          techStack: techStack
         }
         inputDesc = '接口设计结果 + 数据库设计'
       } else if (stepNum === 5) {
@@ -284,7 +313,8 @@ export function useProjectDetail() {
           requirements: reqContent,
           interfaces: intContent,
           businessLogic: blContent,
-          systemPrompt: systemPrompt
+          systemPrompt: systemPrompt,
+          techStack: techStack
         }
         inputDesc = '需求理解、接口设计、业务逻辑设计结果'
       }
@@ -754,5 +784,8 @@ export function useProjectDetail() {
     createVersion,
     createNewVersion,
     loadVersion
+    ,
+    techStack,
+    setTechStack
   }
 }
