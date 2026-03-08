@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ interface InfoPanelProps {
   onApprove?: () => void
   onNext?: () => void
   isLast?: boolean
+  onChangeDetail?: (partial: Partial<StepDetail>) => void
 }
 
 type TabType = 'input' | 'output' | 'system' | 'response'
@@ -70,6 +71,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
   onApprove,
   onNext,
   isLast,
+  onChangeDetail,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab)
   const [viewMode, setViewMode] = useState<ViewMode>('rendered')
@@ -85,11 +87,47 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
       : ''
   })
 
+  const debounceRef = useRef<number | null>(null)
+
+  const flushChange = useCallback((tab: TabType, value: string) => {
+    if (!onChangeDetail) return
+
+    if (tab === 'system') {
+      onChangeDetail({ systemPrompt: value })
+    } else if (tab === 'input') {
+      onChangeDetail({ input: value, userPrompt: value })
+    } else if (tab === 'output') {
+      onChangeDetail({ output: value })
+    } else if (tab === 'response') {
+      try {
+        const parsed = JSON.parse(value)
+        onChangeDetail({ rawResponse: parsed })
+      } catch (err) {
+        // 无效 JSON，不回传
+      }
+    }
+  }, [onChangeDetail])
+
+  // 组件卸载时清除定时器
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        window.clearTimeout(debounceRef.current)
+        debounceRef.current = null
+      }
+    }
+  }, [])
+
   // 当步骤改变时，更新状态
   useEffect(() => {
-    // 只有当步骤编号改变时才更新状态，避免编辑内容时触发
-    if (stepDetail.stepNumber !== lastStepNumber) {
-      // 如果有输出内容，切换到输出标签页
+    // 当步骤的关键内容发生变化时（如 input/output/rawResponse），同步到本地 editableContent
+    // 保持对用户正在编辑同一步骤时不被覆盖的保护：当且仅当步骤编号变化或后端数据发生变化且不等于本地内容时更新
+    const currentResponse = stepDetail.rawResponse ? JSON.stringify(stepDetail.rawResponse, null, 2) : ''
+    const inputChanged = stepDetail.input !== editableContent.input
+    const outputChanged = stepDetail.output !== editableContent.output
+    const responseChanged = currentResponse !== editableContent.response
+
+    if (stepDetail.stepNumber !== lastStepNumber || inputChanged || outputChanged || responseChanged) {
       if (stepDetail.output && defaultActiveTab === 'output') {
         setActiveTab('output')
       } else {
@@ -99,13 +137,11 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         system: stepDetail.systemPrompt || '',
         input: stepDetail.input || '',
         output: stepDetail.output || '',
-        response: stepDetail.rawResponse
-          ? JSON.stringify(stepDetail.rawResponse, null, 2)
-          : ''
+        response: currentResponse
       })
       setLastStepNumber(stepDetail.stepNumber)
     }
-  }, [stepDetail.stepNumber, lastStepNumber, defaultActiveTab])
+  }, [stepDetail.stepNumber, stepDetail.input, stepDetail.output, stepDetail.rawResponse, defaultActiveTab, editableContent, lastStepNumber])
 
   const getTabContent = () => {
     return editableContent[activeTab]
@@ -206,36 +242,26 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
       <div className="flex-1 min-h-0 animate-fade-in overflow-hidden">
         {viewMode === 'raw' || isJson ? (
           <textarea
-            value={content}
-            onChange={(e) => {
-              // 只更新本地状态，避免编辑时触发不必要的重新渲染
-              setEditableContent(prev => ({
-                ...prev,
-                [activeTab]: e.target.value
-              }))
+              value={content}
+              onChange={(e) => {
+                const v = e.target.value
+                // 只更新本地状态，避免编辑时触发不必要的重新渲染
+                setEditableContent(prev => ({
+                  ...prev,
+                  [activeTab]: v
+                }))
 
-              // 同时更新原始数据，确保数据一致性
-              switch (activeTab) {
-                case 'system':
-                  stepDetail.systemPrompt = e.target.value
-                  break
-                case 'input':
-                  stepDetail.input = e.target.value
-                  break
-                case 'output':
-                  stepDetail.output = e.target.value
-                  break
-                case 'response':
-                  try {
-                    stepDetail.rawResponse = JSON.parse(e.target.value)
-                  } catch (error) {
-                    // 忽略无效的 JSON
-                  }
-                  break
-              }
-            }}
-            className="w-full h-full p-4 font-mono text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-          />
+                // 去抖回传到父组件（如果提供了回调）
+                if (debounceRef.current) {
+                  window.clearTimeout(debounceRef.current)
+                }
+                // 使用 number 类型的定时器 id
+                debounceRef.current = window.setTimeout(() => {
+                  flushChange(activeTab, v)
+                }, 800) as unknown as number
+              }}
+              className="w-full h-full p-4 font-mono text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+            />
         ) : (
           <div className="w-full h-full bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col">
             <MarkdownRenderer content={content} />

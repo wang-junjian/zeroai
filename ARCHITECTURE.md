@@ -381,7 +381,7 @@ import { designDatabase } from '@/lib/ai-service'
 import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
 interface DesignDatabaseRequest {
-  requirements: string
+  requirements: string  // 包含需求理解结果 + 接口设计结果
 }
 
 export const POST = createApiHandler(async (req: NextRequest) => {
@@ -392,7 +392,7 @@ export const POST = createApiHandler(async (req: NextRequest) => {
 **请求**:
 ```typescript
 POST /api/design/database
-Body: { requirements: string }
+Body: { requirements: string }  // 需求理解 + 接口设计的组合结果
 ```
 
 #### 业务逻辑设计 (`api/design/business-logic/route.ts`)
@@ -402,7 +402,7 @@ import { designBusinessLogic } from '@/lib/ai-service'
 import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
 interface DesignBusinessLogicRequest {
-  interfaces: string
+  interfaces: string  // 包含接口设计结果 + 数据库设计结果
 }
 
 export const POST = createApiHandler(async (req: NextRequest) => {
@@ -413,7 +413,7 @@ export const POST = createApiHandler(async (req: NextRequest) => {
 **请求**:
 ```typescript
 POST /api/design/business-logic
-Body: { interfaces: string }
+Body: { interfaces: string }  // 接口设计 + 数据库设计的组合结果
 ```
 
 #### 代码生成 (`api/generate/route.ts`)
@@ -670,20 +670,20 @@ POST /api/generate
    └─ 保存到 t_project_step (step=2)
 
 4. 步骤 3: 数据库设计
-   ├─ 发送步骤1结果到 /api/design/database
-   ├─ AI 设计数据库结构
+   ├─ 发送步骤1结果 + 步骤2结果到 /api/design/database
+   ├─ AI 基于需求和接口设计数据库结构
    ├─ 用户审查 → 审批通过 或 重新生成
    └─ 保存到 t_project_step (step=3)
 
 5. 步骤 4: 业务逻辑设计
-   ├─ 发送步骤2结果到 /api/design/business-logic
-   ├─ AI 设计业务处理逻辑
+   ├─ 发送步骤2结果 + 步骤3结果到 /api/design/business-logic
+   ├─ AI 基于接口和数据库设计业务处理逻辑
    ├─ 用户审查 → 审批通过 或 重新生成
    └─ 保存到 t_project_step (step=4)
 
 6. 步骤 5: 代码生成
-   ├─ 发送步骤1/2/4结果到 /api/generate
-   ├─ AI 生成完整源代码
+   ├─ 发送步骤1/2/3/4结果到 /api/generate
+   ├─ AI 基于需求、接口、数据库和业务逻辑生成完整源代码
    ├─ 用户审查 → 审批通过 或 重新生成
    └─ 保存到 t_project_step (step=5)
 
@@ -726,6 +726,8 @@ OpenAI API
   ↓
 UI 渲染
 ```
+
+注意：在详细视图中对步骤的编辑会即时同步到后端（通过 PUT /api/projects/:code），以便用户的修改立即持久化。系统同时保留每隔 1 秒的自动保存作为冗余保障。
 
 ## 提示词管理
 
