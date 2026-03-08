@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import type { StepDetail } from '@/types'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useLogs } from './useLogs'
 import type { Step } from '../types'
@@ -27,7 +28,7 @@ export function useProjectDetail() {
         stepName: stepNames[0],
         systemPrompt: systemPrompts[0],
         userPrompt: '',
-        input: '',
+        input: requirements,  // Step 1 的 input 显示项目需求
         output: '',
         rawResponse: null,
         timing: undefined
@@ -85,6 +86,17 @@ export function useProjectDetail() {
                 }
               }
             })
+
+            // 如果项目存在并且步骤1没有 input，则使用 project.requirements 填充
+            if (result.project && result.project.requirements) {
+              const step1 = loadedSteps.find((s: any) => s.number === 1)
+              if (step1 && (!step1.detail || !step1.detail.input)) {
+                step1.detail = step1.detail || {}
+                step1.detail.input = result.project.requirements
+                step1.userPrompt = step1.userPrompt || result.project.requirements
+                step1.data = step1.data || '点击"生成"开始此步骤'
+              }
+            }
 
             // 确保所有5个步骤都有数据
             const completeSteps = [...Array(5)].map((_, index) => {
@@ -181,15 +193,16 @@ export function useProjectDetail() {
     const req = searchParams.get('req')
     if (name) setProjectName(safeDecodeURIComponent(name))
     if (req) {
-      setRequirements(safeDecodeURIComponent(req))
+      const decodedReq = safeDecodeURIComponent(req)
+      setRequirements(decodedReq)
       setSteps(prev => prev.map(step =>
         step.number === 1 ? {
           ...step,
           status: 'pending',
           detail: {
             ...step.detail!,
-            input: safeDecodeURIComponent(req),
-            userPrompt: safeDecodeURIComponent(req)
+            input: decodedReq,
+            userPrompt: decodedReq
           },
           data: '点击"生成"开始此步骤'
         } : step
@@ -243,20 +256,24 @@ export function useProjectDetail() {
         inputDesc = '需求理解结果'
       } else if (stepNum === 3) {
         endpoint = apiEndpoints[2]
-        inputContent = step.detail?.input || steps[0].rawContent || ''
+        const reqContent = step.detail?.input || steps[0].rawContent || ''
+        const intContent = steps[1].rawContent || ''
+        inputContent = `需求理解结果：\n${reqContent}\n\n接口设计参考：\n${intContent}`
         body = {
           requirements: inputContent,
           systemPrompt: systemPrompt
         }
-        inputDesc = '需求理解结果'
+        inputDesc = '需求理解结果 + 接口设计'
       } else if (stepNum === 4) {
         endpoint = apiEndpoints[3]
-        inputContent = step.detail?.input || steps[1].rawContent || ''
+        const intContent = step.detail?.input || steps[1].rawContent || ''
+        const dbContent = steps[2].rawContent || ''
+        inputContent = `接口设计结果：\n${intContent}\n\n数据库设计参考：\n${dbContent}`
         body = {
           interfaces: inputContent,
           systemPrompt: systemPrompt
         }
-        inputDesc = '接口设计结果'
+        inputDesc = '接口设计结果 + 数据库设计'
       } else if (stepNum === 5) {
         endpoint = apiEndpoints[4]
         const reqContent = step.detail?.input || steps[0].rawContent || ''
@@ -398,17 +415,25 @@ export function useProjectDetail() {
       // 准备输入内容
       let inputContent = ''
       if (stepNum === 1) {
-        // 步骤2需要步骤1的rawContent
-        inputContent = steps[0].rawContent || ''
+        // 步骤2需要步骤1的输出
+        inputContent = steps[0].detail?.output || ''
       } else if (stepNum === 2) {
-        // 步骤3需要步骤1的rawContent
-        inputContent = steps[0].rawContent || ''
+        // 步骤3需要步骤1和步骤2的输出
+        const step1Out = steps[0].detail?.output || ''
+        const step2Out = steps[1].detail?.output || ''
+        inputContent = `需求理解结果：\n${step1Out}\n\n接口设计参考：\n${step2Out}`
       } else if (stepNum === 3) {
-        // 步骤4需要步骤2的rawContent
-        inputContent = steps[1].rawContent || ''
+        // 步骤4需要步骤2和步骤3的输出
+        const step2Out = steps[1].detail?.output || ''
+        const step3Out = steps[2].detail?.output || ''
+        inputContent = `接口设计结果：\n${step2Out}\n\n数据库设计参考：\n${step3Out}`
       } else if (stepNum === 4) {
-        // 步骤5需要步骤1、2、4的rawContent
-        inputContent = `需求理解：${steps[0].rawContent?.substring(0, 200) || '无'}...\n\n接口设计：${steps[1].rawContent?.substring(0, 200) || '无'}...\n\n业务逻辑：${steps[3].rawContent?.substring(0, 200) || '无'}...`
+        // 步骤5需要步骤1、2、3、4的输出
+        const step1Out = steps[0].detail?.output || ''
+        const step2Out = steps[1].detail?.output || ''
+        const step3Out = steps[2].detail?.output || ''
+        const step4Out = steps[3].detail?.output || ''
+        inputContent = `需求理解：\n${step1Out}\n\n接口设计：\n${step2Out}\n\n数据库设计：\n${step3Out}\n\n业务逻辑：\n${step4Out}`
       }
 
       setSteps(prev => prev.map(s =>
@@ -432,6 +457,67 @@ export function useProjectDetail() {
       addLog('info', '进入步骤 ' + (stepNum + 1) + '：' + stepNames[stepNum])
     }
   }, [approveStep, addLog, steps])
+
+  // 更新步骤详细信息（由 InfoPanel 编辑回调调用）
+  const updateStepDetail = useCallback((stepNum: number, partial: Partial<StepDetail>) => {
+    // 构建新的 steps 数组并同步到本地状态
+    setSteps(prev => {
+      const newSteps = prev.map(s => {
+        if (s.number !== stepNum) return s
+        const newDetail = {
+          ...s.detail,
+          ...partial
+        }
+        const newData = partial.output ?? s.data
+        const newRawContent = partial.output ?? s.rawContent
+        return {
+          ...s,
+          data: newData,
+          rawContent: newRawContent,
+          detail: newDetail
+        }
+      })
+
+      // 异步保存到后端（仅作为即时持久化，不阻塞 UI）
+      ;(async () => {
+        try {
+          // 将前端 Step 格式转换为数据库格式
+          const dbSteps = newSteps.map(step => ({
+            step_number: step.number,
+            step_name: step.name,
+            status: step.status,
+            data: step.data || '',
+            raw_content: step.rawContent,
+            system_prompt: step.detail?.systemPrompt,
+            user_prompt: step.detail?.userPrompt,
+            input: step.detail?.input,
+            output: step.detail?.output,
+            raw_response: step.detail?.rawResponse ? JSON.stringify(step.detail?.rawResponse) : null,
+            timing: step.detail?.timing ? JSON.stringify(step.detail?.timing) : null
+          }))
+
+          await fetch(`/api/projects/${params.code}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              project: {
+                name: projectName,
+                requirements,
+                current_step: currentStep,
+                status: 'active'
+              },
+              steps: dbSteps
+            })
+          })
+        } catch (error) {
+          addLog('error', `保存步骤 ${stepNum} 到后端失败: ${(error as any).message || error}`)
+        }
+      })()
+
+      addLog('info', `步骤 ${stepNum} 内容已更新`)
+      return newSteps
+    })
+  }, [addLog])
 
   // 创建版本（版本号相同时覆盖）
   const createVersion = useCallback(async (versionNumber: string, versionName: string) => {
@@ -661,6 +747,7 @@ export function useProjectDetail() {
     regenerateStep,
     approveStep,
     goToNextStep,
+    updateStepDetail,
     startProject,
     versions,
     selectedVersion,

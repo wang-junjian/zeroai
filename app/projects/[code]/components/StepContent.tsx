@@ -9,6 +9,7 @@ interface StepContentProps {
   onRegenerate: () => void
   onApprove: () => void
   onNext?: () => void
+  onChangeDetail?: (partial: Partial<import("@/types").StepDetail>) => void
   isLast: boolean
 }
 
@@ -17,6 +18,7 @@ export const StepContent: React.FC<StepContentProps> = ({
   onRegenerate,
   onApprove,
   onNext,
+  onChangeDetail,
   isLast
 }) => {
   // 如果步骤有输出内容，默认显示输出标签页
@@ -30,6 +32,7 @@ export const StepContent: React.FC<StepContentProps> = ({
         onRegenerate={onRegenerate}
         onApprove={onApprove}
         onNext={onNext}
+        onChangeDetail={(partial) => onChangeDetail && onChangeDetail(partial)}
         isLast={isLast}
       />
     </div>

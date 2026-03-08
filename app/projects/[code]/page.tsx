@@ -32,6 +32,8 @@ export default function ProjectDetail() {
     createNewVersion,
     selectedVersion,
     loadVersion
+  ,
+    updateStepDetail
   } = useProjectDetail()
 
   const getDisplayStep = () => {
@@ -126,6 +128,7 @@ export default function ProjectDetail() {
                         onRegenerate={() => regenerateStep(displayStep.number)}
                         onApprove={() => approveStep(displayStep.number)}
                         onNext={() => goToNextStep(displayStep.number)}
+                        onChangeDetail={(partial) => updateStepDetail(displayStep.number, partial)}
                         isLast={displayStep.number === 5}
                       />
                     </div>
