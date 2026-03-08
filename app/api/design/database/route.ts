@@ -4,9 +4,10 @@ import { createApiHandler, validateRequest } from '@/lib/api-utils'
 
 interface DesignDatabaseRequest {
   requirements: string
+  systemPrompt?: string
 }
 
 export const POST = createApiHandler(async (req: NextRequest) => {
-  const { requirements } = await validateRequest<DesignDatabaseRequest>(req, ['requirements'])
-  return await designDatabase(requirements)
+  const { requirements, systemPrompt } = await validateRequest<DesignDatabaseRequest>(req, ['requirements'])
+  return await designDatabase(requirements, systemPrompt)
 })
