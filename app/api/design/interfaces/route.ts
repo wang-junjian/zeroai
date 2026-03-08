@@ -5,10 +5,9 @@ import { createApiHandler, validateRequest } from '@/lib/api-utils'
 interface DesignInterfacesRequest {
   requirements: string
   systemPrompt?: string
-  techStack?: string[]
 }
 
 export const POST = createApiHandler(async (req: NextRequest) => {
-  const { requirements, systemPrompt, techStack } = await validateRequest<DesignInterfacesRequest>(req, ['requirements'])
-  return await designInterfaces(requirements, systemPrompt, techStack)
+  const { requirements, systemPrompt } = await validateRequest<DesignInterfacesRequest>(req, ['requirements'])
+  return await designInterfaces(requirements, systemPrompt)
 })
