@@ -3,7 +3,7 @@
 /**
  * 步骤名称
  */
-export const STEP_NAMES = ['需求理解', '接口设计', '表结构设计', '处理逻辑设计', '代码生成'] as const
+export const STEP_NAMES = ['需求理解', '接口设计', '数据库设计', '处理逻辑设计', '代码生成'] as const
 
 /**
  * 步骤类型
