@@ -19,7 +19,7 @@ describe('project constants', () => {
     it('should have correct step names', () => {
       expect(STEP_NAMES[0]).toBe('需求理解');
       expect(STEP_NAMES[1]).toBe('接口设计');
-      expect(STEP_NAMES[2]).toBe('表结构设计');
+      expect(STEP_NAMES[2]).toBe('数据库设计');
       expect(STEP_NAMES[3]).toBe('处理逻辑设计');
       expect(STEP_NAMES[4]).toBe('代码生成');
     });
@@ -86,7 +86,7 @@ describe('project constants', () => {
     it('should return correct step name for step number', () => {
       expect(getStepName(1)).toBe('需求理解');
       expect(getStepName(2)).toBe('接口设计');
-      expect(getStepName(3)).toBe('表结构设计');
+      expect(getStepName(3)).toBe('数据库设计');
       expect(getStepName(4)).toBe('处理逻辑设计');
       expect(getStepName(5)).toBe('代码生成');
     });
