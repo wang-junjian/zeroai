@@ -41,12 +41,25 @@ cp .env.example .env
 ```
 
 2. 编辑 `.env` 文件，配置你的 AI API：
+
+- Ollama
+
+```env
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=ministral-3:3b
+TEMPERATURE=0.7
+MAX_TOKENS=128000
+```
+
+- LongCat
+
 ```env
 OPENAI_BASE_URL=https://api.longcat.chat/openai/
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=LongCat-Flash-Lite
 TEMPERATURE=0.7
-MAX_TOKENS=64000
+MAX_TOKENS=320000
 ```
 
 ### 安装依赖
