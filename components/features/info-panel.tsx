@@ -120,14 +120,11 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 
   // 当步骤改变时，更新状态
   useEffect(() => {
-    // 当步骤的关键内容发生变化时（如 input/output/rawResponse），同步到本地 editableContent
-    // 保持对用户正在编辑同一步骤时不被覆盖的保护：当且仅当步骤编号变化或后端数据发生变化且不等于本地内容时更新
+    // 只有切换步骤的时候才从后端加载最新内容和切换标签
+    // 同一步骤下保持用户本地编辑内容，避免覆盖用户输入和自动跳标签
     const currentResponse = stepDetail.rawResponse ? JSON.stringify(stepDetail.rawResponse, null, 2) : ''
-    const inputChanged = stepDetail.input !== editableContent.input
-    const outputChanged = stepDetail.output !== editableContent.output
-    const responseChanged = currentResponse !== editableContent.response
 
-    if (stepDetail.stepNumber !== lastStepNumber || inputChanged || outputChanged || responseChanged) {
+    if (stepDetail.stepNumber !== lastStepNumber) {
       if (stepDetail.output && defaultActiveTab === 'output') {
         setActiveTab('output')
       } else {
@@ -141,7 +138,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
       })
       setLastStepNumber(stepDetail.stepNumber)
     }
-  }, [stepDetail.stepNumber, stepDetail.input, stepDetail.output, stepDetail.rawResponse, defaultActiveTab, editableContent, lastStepNumber])
+  }, [stepDetail.stepNumber, stepDetail.input, stepDetail.output, stepDetail.rawResponse, defaultActiveTab, lastStepNumber])
 
   const getTabContent = () => {
     return editableContent[activeTab]

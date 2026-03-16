@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { StepDetail } from '@/types'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useLogs } from './useLogs'
 import type { Step } from '../types'
 import { stepNames, systemPrompts, fallbackContents, apiEndpoints } from '../constants'
-import { safeDecodeURIComponent, truncateText } from '../utils'
+import { truncateText } from '../utils'
 
 export function useProjectDetail() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const { logs, logsExpanded, setLogsExpanded, addLog, clearLogs } = useLogs()
 
   const [projectName, setProjectName] = useState('项目')
@@ -65,8 +64,9 @@ export function useProjectDetail() {
           }
 
           // 加载步骤信息
+          let loadedSteps: any[] = []
           if (result.steps && result.steps.length > 0) {
-            const loadedSteps = result.steps.map((dbStep: any) => {
+            loadedSteps = result.steps.map((dbStep: any) => {
               const stepNumber = dbStep.step_number
               return {
                 number: stepNumber,
@@ -97,36 +97,44 @@ export function useProjectDetail() {
                 step1.data = step1.data || '点击"生成"开始此步骤'
               }
             }
-
-            // 确保所有5个步骤都有数据
-            const completeSteps = [...Array(5)].map((_, index) => {
-              const stepNumber = index + 1
-              const existingStep = loadedSteps.find((s: any) => s.number === stepNumber)
-
-              if (existingStep) {
-                return existingStep
-              }
-
-              return {
-                number: stepNumber,
-                name: stepNames[index],
-                status: 'pending',
-                data: stepNumber === 1 ? '请输入项目需求描述' : '点击"生成"开始此步骤',
-                detail: {
-                  stepNumber: stepNumber,
-                  stepName: stepNames[index],
-                  systemPrompt: systemPrompts[index],
-                  userPrompt: '',
-                  input: '',
-                  output: '',
-                  rawResponse: null,
-                  timing: undefined
-                }
-              }
-            })
-
-            setSteps(completeSteps)
           }
+
+          // 确保所有5个步骤都有数据，无论是否有已加载的步骤
+          const completeSteps = [...Array(5)].map((_, index) => {
+            const stepNumber = index + 1
+            const existingStep = loadedSteps.find((s: any) => s.number === stepNumber)
+
+            if (existingStep) {
+              return existingStep
+            }
+
+            const newStep = {
+              number: stepNumber,
+              name: stepNames[index],
+              status: 'pending',
+              data: stepNumber === 1 ? '点击"生成"开始此步骤' : '点击"生成"开始此步骤',
+              detail: {
+                stepNumber: stepNumber,
+                stepName: stepNames[index],
+                systemPrompt: systemPrompts[index],
+                userPrompt: '',
+                input: '',
+                output: '',
+                rawResponse: null,
+                timing: undefined
+              }
+            }
+
+            // 如果是步骤1且有项目需求，设置输入内容
+            if (stepNumber === 1 && result.project && result.project.requirements) {
+              newStep.detail.input = result.project.requirements
+              newStep.detail.userPrompt = result.project.requirements
+            }
+
+            return newStep
+          })
+
+          setSteps(completeSteps)
 
           // 加载日志
           if (result.logs && result.logs.length > 0) {
@@ -188,27 +196,6 @@ export function useProjectDetail() {
     return () => clearTimeout(timeoutId)
   }, [steps, projectName, requirements, currentStep, params.code, isDataLoaded])
 
-  useEffect(() => {
-    const name = searchParams.get('name')
-    const req = searchParams.get('req')
-    if (name) setProjectName(safeDecodeURIComponent(name))
-    if (req) {
-      const decodedReq = safeDecodeURIComponent(req)
-      setRequirements(decodedReq)
-      setSteps(prev => prev.map(step =>
-        step.number === 1 ? {
-          ...step,
-          status: 'pending',
-          detail: {
-            ...step.detail!,
-            input: decodedReq,
-            userPrompt: decodedReq
-          },
-          data: '点击"生成"开始此步骤'
-        } : step
-      ))
-    }
-  }, [searchParams])
 
   const startStep = useCallback(async (stepNum: number) => {
     const step = steps[stepNum - 1]

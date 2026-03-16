@@ -4,8 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock next/navigation used by the hook
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ code: 'test' }),
-  useSearchParams: () => ({ get: (k: string) => null })
+  useParams: () => ({ code: 'test' })
 }))
 
 // Mock useLogs hook used internally
@@ -79,5 +78,80 @@ describe('useProjectDetail.updateStepDetail', () => {
     const lastPut = putCalls[putCalls.length - 1]
     const body = JSON.parse(lastPut[1].body)
     expect(body.steps.find((s: any) => s.step_number === 1).output).toBe('new output')
+  })
+})
+
+describe('useProjectDetail.loadProjectData', () => {
+  let fetchMock: any
+
+  function TestComponent2() {
+    const { steps, projectName, requirements } = useProjectDetail()
+    return (
+      <div>
+        <div data-testid="project-name">{projectName}</div>
+        <div data-testid="requirements">{requirements}</div>
+        <div data-testid="step1-input">{steps[0].detail?.input}</div>
+        <div data-testid="step1-userPrompt">{steps[0].detail?.userPrompt}</div>
+      </div>
+    )
+  }
+
+  it('initializes step1 with project requirements when no steps exist', async () => {
+    fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({
+          project: { name: '测试项目', requirements: '这是详细的项目需求', current_step: 0 },
+          steps: [],
+          versions: [],
+          logs: []
+        })
+      })
+    )
+    // @ts-ignore
+    global.fetch = fetchMock
+
+    await act(async () => {
+      render(<TestComponent2 />)
+    })
+
+    // 验证项目数据加载正确
+    expect(screen.getByTestId('project-name').textContent).toBe('测试项目')
+    expect(screen.getByTestId('requirements').textContent).toBe('这是详细的项目需求')
+
+    // 验证步骤1的 input 和 userPrompt 正确设置
+    expect(screen.getByTestId('step1-input').textContent).toBe('这是详细的项目需求')
+    expect(screen.getByTestId('step1-userPrompt').textContent).toBe('这是详细的项目需求')
+  })
+
+  it('does not overwrite step1 input when steps exist', async () => {
+    fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({
+          project: { name: '测试项目', requirements: '项目需求', current_step: 1 },
+          steps: [{
+            step_number: 1,
+            step_name: '需求理解',
+            status: 'pending',
+            data: '已有数据',
+            input: '已存在的输入内容',
+            user_prompt: '已存在的用户提示'
+          }],
+          versions: [],
+          logs: []
+        })
+      })
+    )
+    // @ts-ignore
+    global.fetch = fetchMock
+
+    await act(async () => {
+      render(<TestComponent2 />)
+    })
+
+    // 验证步骤1的 input 没有被项目需求覆盖
+    expect(screen.getByTestId('step1-input').textContent).toBe('已存在的输入内容')
+    expect(screen.getByTestId('step1-userPrompt').textContent).toBe('已存在的用户提示')
   })
 })

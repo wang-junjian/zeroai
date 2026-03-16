@@ -35,7 +35,7 @@ export default function Home() {
     localStorage.setItem('zeroai-projects', JSON.stringify(newProjects))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectName || !requirements) {
       alert('请填写项目名称和需求！')
@@ -50,17 +50,43 @@ export default function Home() {
       createdAt: new Date().toISOString(),
       status: 'pending'
     }
-    // 保存项目
-    saveProject(newProject)
-    // 关闭模态框
-    setShowNewProject(false)
-    setProjectName('')
-    setRequirements('')
-    // 跳转到项目详情页
-    const params = new URLSearchParams()
-    params.set('name', projectName)
-    params.set('req', requirements)
-    router.push('/projects/' + projectCode + '?' + params.toString())
+    try {
+      // 保存项目到数据库
+      await saveProjectToDB(newProject)
+      // 保存项目到 localStorage
+      saveProject(newProject)
+      // 关闭模态框
+      setShowNewProject(false)
+      setProjectName('')
+      setRequirements('')
+      // 跳转到项目详情页（不带查询参数）
+      router.push('/projects/' + projectCode)
+    } catch (error) {
+      console.error('创建项目失败:', error)
+      alert('创建项目失败，请重试！')
+    }
+  }
+
+  // 保存项目到数据库
+  const saveProjectToDB = async (project: Project) => {
+    try {
+      await fetch(`/api/projects/${project.code}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project: {
+            code: project.code,
+            name: project.name,
+            requirements: project.requirements,
+            current_step: 0,
+            status: 'active'
+          },
+          steps: []
+        })
+      })
+    } catch (error) {
+      console.error('保存项目到数据库失败:', error)
+    }
   }
 
   const deleteProject = (projectCode: string) => {
@@ -167,14 +193,11 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {projects.map((project) => {
                 const statusBadge = getStatusBadge(project.status)
-                const params = new URLSearchParams()
-                params.set('name', project.name)
-                params.set('req', project.requirements)
                 return (
                   <Card
                     key={project.code}
                     hoverable={true}
-                    onClick={() => router.push('/projects/' + project.code + '?' + params.toString())}
+                    onClick={() => router.push('/projects/' + project.code)}
                     className="group"
                   >
                     <CardBody className="p-6">
