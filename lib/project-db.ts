@@ -86,6 +86,15 @@ export function getProjectByCode(code: string) {
   return stmt.get(code) as Project
 }
 
+// 获取所有项目
+export function getAllProjects() {
+  const stmt = db.prepare(`
+    SELECT * FROM t_project ORDER BY create_time DESC
+  `)
+
+  return stmt.all() as Project[]
+}
+
 // 更新项目
 export function updateProject(code: string, updates: Partial<Project>) {
   const updateFields = Object.keys(updates)

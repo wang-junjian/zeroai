@@ -9,8 +9,10 @@ interface Project {
   code: string
   name: string
   requirements: string
-  createdAt: string
+  createdAt?: string
+  create_time?: string
   status: 'pending' | 'running' | 'completed' | 'failed'
+  current_step?: number
 }
 
 export default function Home() {
@@ -24,12 +26,63 @@ export default function Home() {
   const [editProjectName, setEditProjectName] = useState('')
   const [editRequirements, setEditRequirements] = useState('')
 
-  // 从 localStorage 加载项目
+  // 从 localStorage 和数据库同步加载项目
   useEffect(() => {
-    const savedProjects = localStorage.getItem('zeroai-projects')
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects))
+    const loadProjects = async () => {
+      // 先从 localStorage 加载
+      const savedProjects = localStorage.getItem('zeroai-projects')
+      let localProjects: Project[] = savedProjects ? JSON.parse(savedProjects) : []
+
+      try {
+        // 从数据库加载所有项目
+        const response = await fetch('/api/projects')
+        if (response.ok) {
+          const { projects: dbProjects } = await response.json()
+
+          // 合并本地和数据库的项目，以数据库为准
+          const projectMap = new Map<string, Project>()
+
+          // 先加本地项目
+          localProjects.forEach(project => {
+            projectMap.set(project.code, project)
+          })
+
+          // 再用数据库项目覆盖或添加
+          dbProjects.forEach((project: Project) => {
+            projectMap.set(project.code, project)
+          })
+
+          // 转换为数组并按创建时间倒序
+          const mergedProjects = Array.from(projectMap.values()).sort((a, b) =>
+            new Date(b.createdAt || b.create_time || 0).getTime() - new Date(a.createdAt || a.create_time || 0).getTime()
+          )
+
+          // 更新状态和 localStorage
+          setProjects(mergedProjects)
+          localStorage.setItem('zeroai-projects', JSON.stringify(mergedProjects))
+
+          // 把本地有但数据库没有的项目保存到数据库
+          for (const localProject of localProjects) {
+            if (!dbProjects.find((p: Project) => p.code === localProject.code)) {
+              await fetch(`/api/projects/${localProject.code}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  project: localProject,
+                  steps: []
+                })
+              })
+            }
+          }
+        }
+      } catch (error) {
+        console.error('从数据库加载项目失败:', error)
+        // 加载失败时使用本地项目
+        setProjects(localProjects)
+      }
     }
+
+    loadProjects()
   }, [])
 
   // 保存项目到 localStorage
@@ -255,7 +308,7 @@ export default function Home() {
                               {statusBadge.label}
                             </span>
                             <span className="text-xs text-gray-500">
-                              {formatDate(project.createdAt)}
+                              {formatDate(project.createdAt || project.create_time || new Date().toISOString())}
                             </span>
                           </div>
                         </div>
