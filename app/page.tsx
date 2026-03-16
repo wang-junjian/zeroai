@@ -19,6 +19,10 @@ export default function Home() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [projectName, setProjectName] = useState('')
   const [requirements, setRequirements] = useState('')
+  const [showEditProject, setShowEditProject] = useState(false)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [editProjectName, setEditProjectName] = useState('')
+  const [editRequirements, setEditRequirements] = useState('')
 
   // 从 localStorage 加载项目
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function Home() {
     }
     try {
       // 保存项目到数据库
-      await saveProjectToDB(newProject)
+      await saveProjectToDB(newProject, true)
       // 保存项目到 localStorage
       saveProject(newProject)
       // 关闭模态框
@@ -68,7 +72,7 @@ export default function Home() {
   }
 
   // 保存项目到数据库
-  const saveProjectToDB = async (project: Project) => {
+  const saveProjectToDB = async (project: Project, resetProgress: boolean = true) => {
     try {
       await fetch(`/api/projects/${project.code}`, {
         method: 'PUT',
@@ -78,10 +82,10 @@ export default function Home() {
             code: project.code,
             name: project.name,
             requirements: project.requirements,
-            current_step: 0,
-            status: 'active'
+            current_step: resetProgress ? 0 : (project as any).current_step || 0,
+            status: resetProgress ? 'active' : project.status
           },
-          steps: []
+          steps: resetProgress ? [] : (project as any).steps || []
         })
       })
     } catch (error) {
@@ -94,6 +98,46 @@ export default function Home() {
       const newProjects = projects.filter(p => p.code !== projectCode)
       setProjects(newProjects)
       localStorage.setItem('zeroai-projects', JSON.stringify(newProjects))
+    }
+  }
+
+  const editProject = (project: Project) => {
+    setEditingProject(project)
+    setEditProjectName(project.name)
+    setEditRequirements(project.requirements)
+    setShowEditProject(true)
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingProject || !editProjectName || !editRequirements) {
+      alert('请填写项目名称和需求！')
+      return
+    }
+
+    const updatedProject: Project = {
+      ...editingProject,
+      name: editProjectName,
+      requirements: editRequirements
+    }
+
+    try {
+      // 更新项目到数据库，编辑时重置进度为0
+      await saveProjectToDB(updatedProject, true)
+      // 更新项目到 localStorage
+      const newProjects = projects.map(p =>
+        p.code === updatedProject.code ? updatedProject : p
+      )
+      setProjects(newProjects)
+      localStorage.setItem('zeroai-projects', JSON.stringify(newProjects))
+      // 关闭模态框
+      setShowEditProject(false)
+      setEditingProject(null)
+      setEditProjectName('')
+      setEditRequirements('')
+    } catch (error) {
+      console.error('更新项目失败:', error)
+      alert('更新项目失败，请重试！')
     }
   }
 
@@ -215,15 +259,26 @@ export default function Home() {
                             </span>
                           </div>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            deleteProject(project.code)
-                          }}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
-                        >
-                          🗑️
-                        </button>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              editProject(project)
+                            }}
+                            className="text-gray-400 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              deleteProject(project.code)
+                            }}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                       <p className="text-sm text-gray-600 line-clamp-3 mb-6 leading-relaxed">
                         {project.requirements}
@@ -328,6 +383,102 @@ export default function Home() {
                   >
                     <span>🚀</span>
                     开始创建
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Project Modal */}
+      {showEditProject && editingProject && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold text-gradient">编辑项目</h2>
+                <button
+                  onClick={() => {
+                    setShowEditProject(false)
+                    setEditingProject(null)
+                    setEditProjectName('')
+                    setEditRequirements('')
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl transition-colors p-2 rounded-lg hover:bg-gray-100"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Edit Project Form */}
+              <form onSubmit={handleEditSubmit} className="space-y-6">
+                {/* Project Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    项目名称
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editProjectName}
+                    onChange={(e) => setEditProjectName(e.target.value)}
+                    placeholder="例如：坦克大战游戏"
+                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-lg"
+                  />
+                </div>
+
+                {/* Project Requirements */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    项目需求（自然语言描述）
+                  </label>
+                  <textarea
+                    required
+                    rows={12}
+                    value={editRequirements}
+                    onChange={(e) => setEditRequirements(e.target.value)}
+                    placeholder="详细描述你想要开发的软件..."
+                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors font-mono text-sm"
+                  />
+                  <p className="mt-3 text-sm text-gray-500">
+                    尽可能详细地描述你的需求，包括功能特性、技术要求等。
+                  </p>
+                </div>
+
+                {/* Tech Stack (Optional) - Simplified */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    技术栈（可选）
+                  </label>
+                  <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-4">
+                    默认使用：Next.js + TypeScript + Tailwind CSS
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-4 pt-6">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setShowEditProject(false)
+                      setEditingProject(null)
+                      setEditProjectName('')
+                      setEditRequirements('')
+                    }}
+                    variant="outline"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    取消
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="flex-1 shadow-lg hover:shadow-xl"
+                  >
+                    <span>💾</span>
+                    保存修改
                   </Button>
                 </div>
               </form>
