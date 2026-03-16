@@ -118,7 +118,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
     }
   }, [])
 
-  // 当步骤改变时，更新状态
+  // 当步骤或内容改变时，更新状态
   useEffect(() => {
     // 只有切换步骤的时候才从后端加载最新内容和切换标签
     // 同一步骤下保持用户本地编辑内容，避免覆盖用户输入和自动跳标签
@@ -137,6 +137,14 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         response: currentResponse
       })
       setLastStepNumber(stepDetail.stepNumber)
+    } else {
+      // 组件初始化或内容变化时，填充空白的内容
+      setEditableContent(prev => ({
+        system: prev.system || stepDetail.systemPrompt || '',
+        input: prev.input || stepDetail.input || '',
+        output: prev.output || stepDetail.output || '',
+        response: prev.response || currentResponse
+      }))
     }
   }, [stepDetail.stepNumber, stepDetail.input, stepDetail.output, stepDetail.rawResponse, defaultActiveTab, lastStepNumber])
 
