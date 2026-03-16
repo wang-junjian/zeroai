@@ -52,10 +52,12 @@ export default function Home() {
             projectMap.set(project.code, project)
           })
 
-          // 转换为数组并按创建时间倒序
-          const mergedProjects = Array.from(projectMap.values()).sort((a, b) =>
-            new Date(b.createdAt || b.create_time || 0).getTime() - new Date(a.createdAt || a.create_time || 0).getTime()
-          )
+          // 转换为数组并按创建时间倒序，过滤掉无效的空项目
+          const mergedProjects = Array.from(projectMap.values())
+            .filter(project => project.code && project.name) // 过滤掉没有code或name的无效项目
+            .sort((a, b) =>
+              new Date(b.createdAt || b.create_time || 0).getTime() - new Date(a.createdAt || a.create_time || 0).getTime()
+            )
 
           // 更新状态和 localStorage
           setProjects(mergedProjects)
@@ -146,11 +148,21 @@ export default function Home() {
     }
   }
 
-  const deleteProject = (projectCode: string) => {
+  const deleteProject = async (projectCode: string) => {
     if (confirm('确定要删除这个项目吗？')) {
-      const newProjects = projects.filter(p => p.code !== projectCode)
-      setProjects(newProjects)
-      localStorage.setItem('zeroai-projects', JSON.stringify(newProjects))
+      try {
+        // 从数据库删除项目
+        await fetch(`/api/projects/${projectCode}`, {
+          method: 'DELETE'
+        })
+        // 从localStorage删除项目
+        const newProjects = projects.filter(p => p.code !== projectCode)
+        setProjects(newProjects)
+        localStorage.setItem('zeroai-projects', JSON.stringify(newProjects))
+      } catch (error) {
+        console.error('删除项目失败:', error)
+        alert('删除项目失败，请重试！')
+      }
     }
   }
 

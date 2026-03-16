@@ -4,6 +4,7 @@ import {
   getProjectByCode,
   createProject,
   updateProject,
+  deleteProject,
   getProjectSteps,
   createProjectStep,
   updateProjectStep,
@@ -126,6 +127,30 @@ export async function PUT(
     console.error('更新项目失败:', error)
     return NextResponse.json(
       { error: '更新项目失败' },
+      { status: 500 }
+    )
+  }
+}
+
+// 删除项目
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ code: string }> }
+) {
+  try {
+    const { code } = await params
+    const existingProject = getProjectByCode(code)
+
+    if (!existingProject) {
+      return NextResponse.json({ error: '项目不存在' }, { status: 404 })
+    }
+
+    deleteProject(code)
+    return NextResponse.json({ success: true, message: '项目删除成功' })
+  } catch (error) {
+    console.error('删除项目失败:', error)
+    return NextResponse.json(
+      { error: '删除项目失败' },
       { status: 500 }
     )
   }
