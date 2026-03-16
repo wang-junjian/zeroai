@@ -170,6 +170,7 @@ export const initDatabase = () => {
       requirements TEXT,
       current_step INTEGER DEFAULT 0,
       status TEXT DEFAULT 'draft',
+      tech_stack TEXT DEFAULT 'nextjs',
       create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_time DATETIME DEFAULT CURRENT_TIMESTAMP
     );

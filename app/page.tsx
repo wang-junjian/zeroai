@@ -13,6 +13,7 @@ interface Project {
   create_time?: string
   status: 'pending' | 'running' | 'completed' | 'failed'
   current_step?: number
+  techStack?: string
 }
 
 export default function Home() {
@@ -21,10 +22,12 @@ export default function Home() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [projectName, setProjectName] = useState('')
   const [requirements, setRequirements] = useState('')
+  const [techStack, setTechStack] = useState('nextjs')
   const [showEditProject, setShowEditProject] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [editProjectName, setEditProjectName] = useState('')
   const [editRequirements, setEditRequirements] = useState('')
+  const [editTechStack, setEditTechStack] = useState('nextjs')
 
   // 从 localStorage 和数据库同步加载项目
   useEffect(() => {
@@ -107,7 +110,8 @@ export default function Home() {
       name: projectName,
       requirements: requirements,
       createdAt: new Date().toISOString(),
-      status: 'pending'
+      status: 'pending',
+      techStack: techStack
     }
     try {
       // 保存项目到数据库
@@ -138,7 +142,8 @@ export default function Home() {
             name: project.name,
             requirements: project.requirements,
             current_step: resetProgress ? 0 : (project as any).current_step || 0,
-            status: resetProgress ? 'active' : project.status
+            status: resetProgress ? 'active' : project.status,
+            tech_stack: project.techStack
           },
           steps: resetProgress ? [] : (project as any).steps || []
         })
@@ -170,6 +175,7 @@ export default function Home() {
     setEditingProject(project)
     setEditProjectName(project.name)
     setEditRequirements(project.requirements)
+    setEditTechStack(project.techStack || 'nextjs')
     setShowEditProject(true)
   }
 
@@ -183,7 +189,8 @@ export default function Home() {
     const updatedProject: Project = {
       ...editingProject,
       name: editProjectName,
-      requirements: editRequirements
+      requirements: editRequirements,
+      techStack: editTechStack
     }
 
     try {
@@ -420,13 +427,60 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Tech Stack (Optional) - Simplified */}
+                {/* Tech Stack (Optional) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     技术栈（可选）
                   </label>
-                  <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-4">
-                    默认使用：Next.js + TypeScript + Tailwind CSS
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setTechStack('nextjs')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        techStack === 'nextjs'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">Next.js 全栈</div>
+                      <div className="text-xs text-gray-500">Next.js + TypeScript + Tailwind CSS</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTechStack('react')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        techStack === 'react'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">React 单页应用</div>
+                      <div className="text-xs text-gray-500">React + TypeScript + Vite</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTechStack('vue')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        techStack === 'vue'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">Vue 项目</div>
+                      <div className="text-xs text-gray-500">Vue 3 + TypeScript + Vite</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTechStack('node')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        techStack === 'node'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">Node.js 后端</div>
+                      <div className="text-xs text-gray-500">Node.js + Express + TypeScript</div>
+                    </button>
                   </div>
                 </div>
 
@@ -511,13 +565,60 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Tech Stack (Optional) - Simplified */}
+                {/* Tech Stack (Optional) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     技术栈（可选）
                   </label>
-                  <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-4">
-                    默认使用：Next.js + TypeScript + Tailwind CSS
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditTechStack('nextjs')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        editTechStack === 'nextjs'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">Next.js 全栈</div>
+                      <div className="text-xs text-gray-500">Next.js + TypeScript + Tailwind CSS</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditTechStack('react')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        editTechStack === 'react'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">React 单页应用</div>
+                      <div className="text-xs text-gray-500">React + TypeScript + Vite</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditTechStack('vue')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        editTechStack === 'vue'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">Vue 项目</div>
+                      <div className="text-xs text-gray-500">Vue 3 + TypeScript + Vite</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditTechStack('node')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                        editTechStack === 'node'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium mb-1">Node.js 后端</div>
+                      <div className="text-xs text-gray-500">Node.js + Express + TypeScript</div>
+                    </button>
                   </div>
                 </div>
 

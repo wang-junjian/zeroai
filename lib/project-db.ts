@@ -7,6 +7,7 @@ export interface Project {
   requirements: string
   current_step: number
   status: string
+  tech_stack?: string
   create_time?: Date
   update_time?: Date
 }
@@ -57,8 +58,8 @@ export interface ProjectLog {
 export function createProject(project: Omit<Project, 'create_time' | 'update_time'>) {
   const stmt = db.prepare(`
     INSERT INTO t_project (
-      code, name, requirements, current_step, status
-    ) VALUES (?, ?, ?, ?, ?)
+      code, name, requirements, current_step, status, tech_stack
+    ) VALUES (?, ?, ?, ?, ?, ?)
   `)
 
   try {
@@ -67,7 +68,8 @@ export function createProject(project: Omit<Project, 'create_time' | 'update_tim
       project.name,
       project.requirements,
       project.current_step,
-      project.status
+      project.status,
+      project.tech_stack || 'nextjs'
     ])
 
     return getProjectByCode(project.code)
