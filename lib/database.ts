@@ -1,7 +1,14 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
-const dbPath = path.join(process.cwd(), 'zeroai.db');
+// 确保data目录存在
+const dataDir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'zeroai.db');
 export const db = new Database(dbPath);
 
 // 创建表结构
